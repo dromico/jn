@@ -1,5 +1,43 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Database Schema Fix
+
+If you encounter the following error when creating or updating invoices:
+
+```
+Error creating invoice: Could not find the 'type' column of 'invoices' in the schema cache
+```
+
+This means the database schema needs to be updated. Follow these steps to fix it:
+
+1. Go to the Supabase Dashboard for your project
+2. Navigate to SQL Editor
+3. Copy and paste the following SQL script:
+
+```sql
+-- Check if type column exists and add it if not
+DO $$ 
+BEGIN 
+  IF NOT EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_name = 'invoices' 
+    AND column_name = 'type'
+  ) THEN
+    ALTER TABLE invoices 
+    ADD COLUMN type text check (type in ('invoice', 'quotation')) default 'invoice';
+  END IF;
+END $$;
+
+-- Update any existing records to have the type set
+UPDATE invoices
+SET type = 'invoice'
+WHERE type IS NULL;
+```
+
+4. Run the SQL script
+5. Refresh the application and try again
+
 ## Getting Started
 
 First, run the development server:

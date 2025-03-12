@@ -1,0 +1,136 @@
+/* Custom styles for Jaya Nexus Cleaning Services */
+
+/* Text shadow utility for better readability on image backgrounds */
+.text-shadow-sm {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.text-shadow-md {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.text-shadow-lg {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Gradient overlays for sections */
+.gradient-overlay-blue {
+  background: linear-gradient(135deg, rgba(79, 179, 217, 0.1) 0%, rgba(79, 179, 217, 0.3) 100%);
+}
+
+.gradient-overlay-dark {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+/* Hero section specific styles */
+.hero-pattern {
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234fb3d9' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Animated cleaning icon */
+.cleaning-motion {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Sparkle effect enhancements */
+.sparkle-effect {
+  filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
+}
+
+/* Service card hover effects */
+.service-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Testimonial carousel enhancements */
+.testimonial-carousel {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4FB3D9;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3a8aa8;
+}
+
+/* Custom selection color */
+::selection {
+  background: rgba(79, 179, 217, 0.3);
+  color: #333;
+}
+
+/* Mobile optimizations */
+@media (max-width: 640px) {
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .mobile-padding {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* Animation keyframes */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(79, 179, 217, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(79, 179, 217, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(79, 179, 217, 0);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Custom color variables for the cleaning theme */
+:root {
+  --cleaning-primary: #4FB3D9;
+  --cleaning-primary-dark: #3a8aa8;
+  --cleaning-secondary: #34D399;
+  --cleaning-secondary-dark: #10B981;
+  --cleaning-accent: #F59E0B;
+  --cleaning-accent-dark: #D97706;
+  --cleaning-light: #F3F4F6;
+  --cleaning-dark: #1F2937;
+}

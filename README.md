@@ -1,74 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jaya Nexus Sdn Bhd - Professional Cleaning Services Website
 
-## Database Schema Fix
+A high-performance website for Jaya Nexus Sdn Bhd cleaning services, specializing in schools and commercial buildings.
 
-If you encounter the following error when creating or updating invoices:
+## Features
 
-```
-Error creating invoice: Could not find the 'type' column of 'invoices' in the schema cache
-```
+- **Optimized Images**: All images are optimized for web performance using modern compression techniques, responsive sizing, and lazy loading
+- **SVG Animations**: Subtle animations for visual engagement (cleaning motions, sparkle effects)
+- **Sticky Navigation**: Responsive navigation bar with sections for Login, About Us, Services, Portfolio, and Contact
+- **Testimonial Carousel**: Showcasing feedback from satisfied institutional clients
+- **Call-to-Action Buttons**: Prominent buttons for quote requests
+- **Mobile Responsiveness**: Optimized for all device sizes with appropriate touch targets
+- **Parallax Scrolling**: Subtle parallax effects for modern appeal
 
-This means the database schema needs to be updated. Follow these steps to fix it:
+## Technologies Used
 
-1. Go to the Supabase Dashboard for your project
-2. Navigate to SQL Editor
-3. Copy and paste the following SQL script:
-
-```sql
--- Check if type column exists and add it if not
-DO $$ 
-BEGIN 
-  IF NOT EXISTS (
-    SELECT 1 
-    FROM information_schema.columns 
-    WHERE table_name = 'invoices' 
-    AND column_name = 'type'
-  ) THEN
-    ALTER TABLE invoices 
-    ADD COLUMN type text check (type in ('invoice', 'quotation')) default 'invoice';
-  END IF;
-END $$;
-
--- Update any existing records to have the type set
-UPDATE invoices
-SET type = 'invoice'
-WHERE type IS NULL;
-```
-
-4. Run the SQL script
-5. Refresh the application and try again
+- **Next.js**: React framework for server-rendered applications
+- **TypeScript**: For type safety and better developer experience
+- **Tailwind CSS**: Utility-first CSS framework for rapid UI development
+- **Sharp**: High-performance image processing
+- **Web Animations API**: For smooth, performant animations
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 18.x or higher
+- npm or yarn
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd website
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn
+   ```
 
-## Learn More
+3. Optimize images (optional, as optimized images are included in the repository):
+   ```bash
+   npm run optimize-images
+   # or
+   yarn optimize-images
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Run the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the website.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Image Optimization
 
-## Deploy on Vercel
+The website uses several techniques to ensure optimal image loading and performance:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Multiple Formats**: Images are served in modern formats (WebP, AVIF) with JPEG fallback
+2. **Responsive Sizes**: Different image sizes are generated for different viewport widths
+3. **Lazy Loading**: Images are loaded only when they enter the viewport
+4. **Blur-up Effect**: Low-resolution placeholders are shown while images load
+5. **Optimized Compression**: Quality settings are balanced for file size and visual quality
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Performance Optimizations
+
+- **Code Splitting**: Only necessary JavaScript is loaded for each page
+- **Component-Based Architecture**: Reusable components for better maintainability
+- **CSS Optimization**: Tailwind's JIT compiler for minimal CSS
+- **SVG Animations**: Lightweight animations using SVG and the Web Animations API instead of heavy libraries
+- **Responsive Design**: Mobile-first approach with optimized layouts for all screen sizes
+
+## Browser Support
+
+The website is optimized for modern browsers, including:
+
+- Chrome/Edge (latest)
+- Firefox (latest)
+- Safari (latest)
+- Mobile browsers (iOS Safari, Android Chrome)
+
+## License
+
+This project is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
+
+## Contact
+
+For inquiries about this website, please contact [info@jayanexus.com.my](mailto:info@jayanexus.com.my).

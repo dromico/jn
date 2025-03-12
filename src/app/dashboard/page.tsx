@@ -12,8 +12,6 @@ interface DashboardStats {
   completedTasks: number;
   pendingInvoices: number;
   totalRevenue: number;
-  activeWebhooks: number;
-  publishedContent: number;
 }
 
 interface RecentActivity {
@@ -39,8 +37,6 @@ export default function DashboardPage() {
     completedTasks: 0,
     pendingInvoices: 0,
     totalRevenue: 0,
-    activeWebhooks: 0,
-    publishedContent: 0,
   });
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,14 +83,12 @@ export default function DashboardPage() {
         const pendingInvoices = invoices?.filter(invoice => invoice.status !== 'paid').length || 0;
         const totalRevenue = invoices?.reduce((sum, invoice) => sum + (invoice.total || 0), 0) || 0;
         
-        // For demo purposes, keep other mock data
+        // Set statistics
         setStats({
           totalTasks,
           completedTasks,
           pendingInvoices,
           totalRevenue,
-          activeWebhooks: 2,
-          publishedContent: 5,
         });
         
         // Fetch recent todo activity
@@ -137,25 +131,8 @@ export default function DashboardPage() {
           status: invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
         })) || [];
         
-        // Define mock activities for webhooks and content with proper typing
-        const mockActivities: RecentActivity[] = [
-          {
-            id: '3',
-            type: 'webhook',
-            title: 'Webhook triggered: invoice.created',
-            date: '2023-06-08T09:45:00Z',
-          },
-          {
-            id: '4',
-            type: 'content',
-            title: 'Updated Homepage Hero Section',
-            date: '2023-06-05T14:20:00Z',
-            status: 'Published',
-          },
-        ];
-        
-        // Combine and set the recent activity
-        setRecentActivity([...todoActivities, ...invoiceActivities, ...mockActivities].slice(0, 5));
+        // Combine and set the recent activity - removed webhook and content mock activities
+        setRecentActivity([...todoActivities, ...invoiceActivities].slice(0, 5));
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -235,7 +212,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Tasks</CardTitle>
@@ -277,52 +254,6 @@ export default function DashboardPage() {
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
                   Manage invoices →
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Webhooks</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.activeWebhooks}</div>
-              <p className="text-xs text-muted-foreground">
-                Active webhook integrations
-              </p>
-              <div className="mt-4">
-                <Link 
-                  href="/dashboard/webhooks"
-                  className="text-sm font-medium text-blue-600 hover:underline"
-                >
-                  Configure webhooks →
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Content</CardTitle>
-              <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-              </svg>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.publishedContent}</div>
-              <p className="text-xs text-muted-foreground">
-                Published content sections
-              </p>
-              <div className="mt-4">
-                <Link 
-                  href="/dashboard/content"
-                  className="text-sm font-medium text-blue-600 hover:underline"
-                >
-                  Manage content →
                 </Link>
               </div>
             </CardContent>

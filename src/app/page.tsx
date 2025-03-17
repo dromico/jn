@@ -17,6 +17,7 @@ export default function Home() {
   const navItems = [
     { label: "About Us", href: "#about" },
     { label: "Services", href: "#services" },
+    { label: "Projects", href: "/Projects" },
     { label: "Portfolio", href: "#portfolio" },
     { label: "Contact", href: "#contact" },
     { label: "Login", href: "/login", isButton: true },

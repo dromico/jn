@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p> 
       `,
-      reply_to: email, // Set the reply-to header to the user's email
+      replyTo: email, // Corrected property name from reply_to to replyTo
     });
 
     if (error) {

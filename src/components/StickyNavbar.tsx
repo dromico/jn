@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import OptimizedImage from './OptimizedImage';
+import LanguageToggle from './LanguageToggle';
+import { useLanguage } from '../context/LanguageContext';
 
 interface NavItem {
   label: string;
@@ -24,6 +26,7 @@ export default function StickyNavbar({
 }: StickyNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useLanguage();
   
   // Handle scroll event to change navbar appearance
   useEffect(() => {
@@ -43,24 +46,30 @@ export default function StickyNavbar({
   }, []);
   
   return (
-    <nav 
+    <nav
       className={`
-        fixed top-0 left-0 right-0 z-50 transition-all duration-300
-        ${isScrolled 
-          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-md py-2' 
+        fixed top-0 left-0 right-0 z-[100] transition-all duration-300
+        ${isScrolled
+          ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-md py-2'
           : 'bg-transparent py-4'}
       `}
     >
       <div className="container mx-auto px-4 flex justify-between items-center">
         {/* Logo and Company Name */}
         <Link href="/" className="flex items-center gap-3">
-          <div className="relative w-10 h-10 overflow-hidden rounded-full">
+          <div className={`
+            relative overflow-hidden rounded-lg shadow-lg transition-all duration-300
+            ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}
+            border-2 border-[#4FB3D9] transform hover:scale-105
+            pulse-glow
+          `}>
             <OptimizedImage
               src={logoSrc}
               alt={`${companyName} logo`}
-              width={40}
-              height={40}
-              className="object-cover"
+              width={64}
+              height={64}
+              className="object-cover w-full h-full"
+              style={{ objectPosition: 'center' }}
               priority
             />
           </div>
@@ -68,6 +77,7 @@ export default function StickyNavbar({
             font-bold text-lg transition-all duration-300
             ${isScrolled ? 'text-primary' : 'text-white text-shadow-sm'}
           `}>
+            <span className="text-[#4FB3D9] mr-1">✦</span>
             {companyName}
           </span>
         </Link>
@@ -86,7 +96,7 @@ export default function StickyNavbar({
                     : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'}
                 `}
               >
-                {item.label}
+                {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
               </Link>
             ) : (
               <Link
@@ -97,46 +107,59 @@ export default function StickyNavbar({
                   ${isScrolled ? 'text-gray-800 dark:text-gray-200' : 'text-white'}
                 `}
               >
-                {item.label}
+                {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
               </Link>
             )
           ))}
+          
+          {/* Language Toggle */}
+          <div className={`ml-2 ${isScrolled ? '' : 'text-white'}`}>
+            <LanguageToggle />
+          </div>
         </div>
         
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-gray-800 dark:text-white"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
-        >
-          <svg 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-            className={`transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-90' : ''}`}
+        {/* Mobile Menu Button and Language Toggle */}
+        <div className="md:hidden flex items-center gap-3">
+          {/* Language Toggle for Mobile */}
+          <div className={isScrolled ? '' : 'text-white'}>
+            <LanguageToggle />
+          </div>
+          
+          {/* Mobile Menu Button */}
+          <button
+            className="text-gray-800 dark:text-white"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
           >
-            {isMobileMenuOpen ? (
-              <path 
-                d="M18 6L6 18M6 6L18 18" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            ) : (
-              <path 
-                d="M4 6H20M4 12H20M4 18H20" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              />
-            )}
-          </svg>
-        </button>
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+              className={`transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-90' : ''}`}
+            >
+              {isMobileMenuOpen ? (
+                <path 
+                  d="M18 6L6 18M6 6L18 18" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              ) : (
+                <path 
+                  d="M4 6H20M4 12H20M4 18H20" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
       
       {/* Mobile Menu */}
@@ -160,7 +183,7 @@ export default function StickyNavbar({
               `}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {item.label}
+              {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
             </Link>
           ))}
         </div>

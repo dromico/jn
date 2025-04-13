@@ -1,5 +1,8 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from 'react'; // Add useState import
 
 import "./cleaning-styles.css";
 
@@ -9,10 +12,23 @@ import OptimizedImage from "../components/OptimizedImage";
 import ParallaxSection from "../components/ParallaxSection";
 import TestimonialCarousel from "../components/TestimonialCarousel";
 import CTAButton from "../components/CTAButton";
+import ServiceCard from "../components/ServiceCard";
 import CleaningMotion from "../components/animations/CleaningMotion";
 import SparkleEffect from "../components/animations/SparkleEffect";
+import { useLanguage } from "../context/LanguageContext";
 
 export default function Home() {
+  const { t } = useLanguage();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    service: '',
+    message: '',
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+
   // Navigation items
   const navItems = [
     { label: "About Us", href: "#about" },
@@ -50,6 +66,7 @@ export default function Home() {
   // Services data
   const services = [
     {
+      key: "commercialbuilding",
       title: "Commercial Building Maintenance",
       description: "Comprehensive cleaning solutions for office buildings, retail spaces, and commercial properties.",
       icon: (
@@ -59,6 +76,7 @@ export default function Home() {
       ),
     },
     {
+      key: "educational",
       title: "Educational Facilities",
       description: "Specialized cleaning for schools, universities, and educational institutions.",
       icon: (
@@ -70,6 +88,7 @@ export default function Home() {
       ),
     },
     {
+      key: "healthcare",
       title: "Healthcare Facilities",
       description: "Medical-grade cleaning and sanitization for hospitals, clinics, and healthcare centers.",
       icon: (
@@ -79,6 +98,7 @@ export default function Home() {
       ),
     },
     {
+      key: "specialized",
       title: "Specialized Cleaning",
       description: "Carpet cleaning, window washing, floor maintenance, and post-construction cleanup.",
       icon: (
@@ -91,6 +111,42 @@ export default function Home() {
       ),
     },
   ];
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [id]: value,
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+
+    try {
+      const response = await fetch('/api/send-quote-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send quote request');
+      }
+
+      setSubmitStatus('success');
+      setFormData({ name: '', email: '', phone: '', service: '', message: '' }); // Clear form
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)]">
@@ -107,11 +163,13 @@ export default function Home() {
         <div className="absolute inset-0 z-0">
           <OptimizedImage
             src="/img/clean1.jpeg"
-            alt="Professional cleaning service"
+            alt={t('hero.title')}
             width={1920}
             height={1080}
-            className="object-cover w-full h-full"
+            className="w-full h-full"
+            objectFit="fill"
             priority
+            style={{ zIndex: 1, position: 'relative' }}
           />
           <div className="absolute inset-0 bg-black/50 z-10"></div>
         </div>
@@ -121,11 +179,11 @@ export default function Home() {
           <ParallaxSection speed={0.3}>
             <div className="max-w-4xl mx-auto">
               <h1 className="text-4xl md:text-6xl font-bold mb-6 text-shadow-md">
-                Transform Your Space with <span className="text-[#4FB3D9]">Professional Cleaning</span>
+                {t('hero.title')} <span className="text-[#4FB3D9]">{t('hero.titleHighlight')}</span>
               </h1>
               
               <p className="text-xl md:text-2xl mb-8 text-shadow-sm max-w-2xl mx-auto">
-                Pristine Results Guaranteed for Schools and Commercial Buildings
+                {t('hero.subtitle')}
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -136,7 +194,7 @@ export default function Home() {
                   withSparkle
                   className="bg-[#4FB3D9] hover:bg-[#3a8aa8]"
                 >
-                  Request a Quote
+                  {t('hero.cta.quote')}
                 </CTAButton>
                 
                 <CTAButton 
@@ -144,7 +202,7 @@ export default function Home() {
                   variant="secondary"
                   size="lg"
                 >
-                  Our Services
+                  {t('hero.cta.services')}
                 </CTAButton>
               </div>
             </div>
@@ -152,10 +210,10 @@ export default function Home() {
         </div>
         
         {/* Animated cleaning elements */}
-        <div className="absolute bottom-10 left-10 z-20 opacity-80 hidden md:block">
+        <div className="absolute bottom-10 left-10 z-[95] opacity-80 hidden md:block">
           <CleaningMotion />
         </div>
-        <div className="absolute top-1/4 right-10 z-20 opacity-80 hidden md:block">
+        <div className="absolute top-1/4 right-10 z-[95] opacity-80 hidden md:block">
           <SparkleEffect />
         </div>
       </section>
@@ -166,11 +224,11 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold mb-6 text-gray-800">
-                About Jaya Nexus <span className="text-[#4FB3D9]">Cleaning Services</span>
+                {t('about.title')} <span className="text-[#4FB3D9]">{t('about.titleHighlight')}</span>
               </h2>
               
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Since 2015, Jaya Nexus Sdn Bhd has been providing premium cleaning services to commercial buildings and educational institutions across Malaysia. Our commitment to excellence and sustainable cleaning practices has made us a trusted partner for businesses that value cleanliness and hygiene.
+                {t('about.description')}
               </p>
               
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -178,25 +236,25 @@ export default function Home() {
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 13L9 17L19 7" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-700">Eco-friendly products</span>
+                  <span className="text-gray-700">{t('about.features.eco')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 13L9 17L19 7" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-700">Trained professionals</span>
+                  <span className="text-gray-700">{t('about.features.trained')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 13L9 17L19 7" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-700">Customized solutions</span>
+                  <span className="text-gray-700">{t('about.features.customized')}</span>
                 </div>
                 <div className="flex items-start gap-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 13L9 17L19 7" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-700">Quality assurance</span>
+                  <span className="text-gray-700">{t('about.features.quality')}</span>
                 </div>
               </div>
               
@@ -205,18 +263,20 @@ export default function Home() {
                 variant="primary"
                 className="bg-[#4FB3D9] hover:bg-[#3a8aa8]"
               >
-                Learn More About Us
+                {t('about.cta')}
               </CTAButton>
             </div>
             
             <div className="relative">
               <div className="relative rounded-lg overflow-hidden shadow-xl">
+                {/* Consider using a more professional team photo or an image showcasing eco-friendly practices here */}
                 <OptimizedImage
-                  src="/img/clean2.jpeg"
-                  alt="Jaya Nexus cleaning team"
+                  src="/img/clean2.jpeg" 
+                  alt="Jaya Nexus cleaning team working" // Improved alt text
                   width={600}
                   height={400}
-                  className="w-full h-auto"
+                  className="w-full h-full"
+                  objectFit="cover"
                 />
               </div>
               
@@ -229,8 +289,8 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Experience</p>
-                    <p className="font-bold text-gray-800">8+ Years</p>
+                    <p className="text-sm text-gray-500">{t('about.stats.experience')}</p>
+                    <p className="font-bold text-gray-800">{t('about.stats.years')}</p>
                   </div>
                 </div>
               </div>
@@ -246,12 +306,13 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Happy Clients</p>
-                    <p className="font-bold text-gray-800">200+</p>
+                    <p className="text-sm text-gray-500">{t('about.stats.clients')}</p>
+                    <p className="font-bold text-gray-800">{t('about.stats.count')}</p>
                   </div>
                 </div>
               </div>
             </div>
+            
           </div>
         </div>
       </section>
@@ -260,9 +321,9 @@ export default function Home() {
       <section id="services" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Cleaning <span className="text-[#4FB3D9]">Services</span></h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('services.title')} <span className="text-[#4FB3D9]">{t('services.titleHighlight')}</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              We offer a comprehensive range of professional cleaning services tailored to meet the specific needs of your facility.
+              {t('services.description')}
             </p>
           </div>
           
@@ -275,8 +336,8 @@ export default function Home() {
                 <div className="mb-4 text-[#4FB3D9]">
                   {service.icon}
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-gray-800">{service.title}</h3>
-                <p className="text-gray-600">{service.description}</p>
+                <h3 className="text-xl font-bold mb-3 text-gray-800">{t(`services.${service.key}.title`)}</h3>
+                <p className="text-gray-600">{t(`services.${service.key}.description`)}</p>
               </div>
             ))}
           </div>
@@ -287,60 +348,80 @@ export default function Home() {
       <section id="portfolio" className="py-20 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Cleaning <span className="text-[#4FB3D9]">Portfolio</span></h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('portfolio.title')} <span className="text-[#4FB3D9]">{t('portfolio.titleHighlight')}</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              See the difference our professional cleaning services can make for your facility.
+              {t('portfolio.description')}
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div className="relative rounded-xl overflow-hidden group">
-              <OptimizedImage
-                src="/img/clean3.jpeg"
-                alt="Office cleaning"
-                width={400}
-                height={300}
-                className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                <div className="p-6 text-white">
-                  <h3 className="font-bold text-xl mb-2">Office Building</h3>
-                  <p className="text-sm">Complete cleaning and maintenance services</p>
-                </div>
-              </div>
-            </div>
+          {/* Updated grid layout to accommodate more cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> 
+            {/* Existing Portfolio Cards */}
+            <ServiceCard
+              src="/img/clean3.jpg" // Office space
+              alt={t('portfolio.office.title')}
+              title={t('portfolio.office.title')}
+              description={t('portfolio.office.description')}
+              width={600} // Maintain consistent sizing if desired
+              height={400} // Maintain consistent sizing if desired
+            />
             
-            <div className="relative rounded-xl overflow-hidden group">
-              <OptimizedImage
-                src="/img/clean4.jpeg"
-                alt="School cleaning"
-                width={400}
-                height={300}
-                className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                <div className="p-6 text-white">
-                  <h3 className="font-bold text-xl mb-2">Educational Facility</h3>
-                  <p className="text-sm">Specialized cleaning for schools and universities</p>
-                </div>
-              </div>
-            </div>
+            <ServiceCard 
+              src="/img/clean4.jpeg" // Educational facility
+              alt={t('portfolio.educational.title')}
+              title={t('portfolio.educational.title')}
+              description={t('portfolio.educational.description')}
+              width={600}
+              height={400}
+            />
             
-            <div className="relative rounded-xl overflow-hidden group">
-              <OptimizedImage
-                src="/img/clean1.jpeg"
-                alt="Medical facility cleaning"
-                width={400}
-                height={300}
-                className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                <div className="p-6 text-white">
-                  <h3 className="font-bold text-xl mb-2">Healthcare Facility</h3>
-                  <p className="text-sm">Medical-grade cleaning and sanitization</p>
-                </div>
-              </div>
-            </div>
+            <ServiceCard 
+              src="/img/clean7.jpeg" // Healthcare/Specialized (Using clean7 instead of clean5)
+              alt={t('portfolio.healthcare.title')}
+              title={t('portfolio.healthcare.title')}
+              description={t('portfolio.healthcare.description')}
+              width={600}
+              height={400}
+            />
+
+            <ServiceCard 
+              src="/img/clean8.jpg" // Classroom/Educational
+              alt={t('services.classroom.title')} // Assuming translation exists
+              title={t('services.classroom.title')} // Assuming translation exists
+              description={t('services.classroom.description')} // Assuming translation exists
+              width={600} 
+              height={400}
+            />
+            
+            <ServiceCard 
+              src="/img/clean9.jpg" // Commercial space
+              alt={t('services.commercial.title')} // Assuming translation exists
+              title={t('services.commercial.title')} // Assuming translation exists
+              description={t('services.commercial.description')} // Assuming translation exists
+              width={600}
+              height={400}
+            />
+            
+            <ServiceCard 
+              src="/img/clean10.jpg" // Landscape/Outdoor
+              alt={t('services.landscape.title')} // Assuming translation exists
+              title={t('services.landscape.title')} // Assuming translation exists
+              description={t('services.landscape.description')} // Assuming translation exists
+              width={600} // Adjusted width for consistency
+              height={400} // Adjusted height for consistency
+            />
+
+            <ServiceCard 
+              src="/img/clean5.jpg" // Eco-friendly/General
+              alt={t('services.eco.title')} // Assuming translation exists
+              title={t('services.eco.title')} // Assuming translation exists
+              description={t('services.eco.description')} // Assuming translation exists
+              width={600} // Adjusted width for consistency
+              height={400} // Adjusted height for consistency
+            />
+            
+            {/* Add more ServiceCards here if needed, ensure you have relevant images */}
+
           </div>
         </div>
       </section>
@@ -349,9 +430,9 @@ export default function Home() {
       <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">What Our <span className="text-[#4FB3D9]">Clients Say</span></h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('testimonials.title')} <span className="text-[#4FB3D9]">{t('testimonials.titleHighlight')}</span></h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Don't just take our word for it. Here's what our satisfied clients have to say about our services.
+              {t('testimonials.description')}
             </p>
           </div>
           
@@ -366,9 +447,11 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             <div>
-              <h2 className="text-3xl font-bold mb-6 text-gray-800">Get in <span className="text-[#4FB3D9]">Touch</span></h2>
+              <h2 className="text-3xl font-bold mb-6 text-gray-800">
+                {t('contact.title')} <span className="text-[#4FB3D9]">{t('contact.titleHighlight')}</span>
+              </h2>
               <p className="text-gray-600 mb-8">
-                Ready to transform your space? Contact us today for a free consultation and quote.
+                {t('contact.description')}
               </p>
               
               <div className="space-y-6">
@@ -380,9 +463,9 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 mb-1">Business Hours</h3>
-                    <p className="text-gray-600">Monday - Friday: 8:00 AM - 6:00 PM</p>
-                    <p className="text-gray-600">Saturday: 9:00 AM - 2:00 PM</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t('contact.businessHours.title')}</h3>
+                    <p className="text-gray-600">{t('contact.businessHours.weekdays')}</p>
+                    <p className="text-gray-600">{t('contact.businessHours.saturday')}</p>
                   </div>
                 </div>
                 
@@ -394,91 +477,115 @@ export default function Home() {
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 mb-1">Our Location</h3>
-                    <p className="text-gray-600">123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t('contact.location.title')}</h3>
+                    <p className="text-gray-600">{t('contact.location.address')}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start gap-4">
                   <div className="bg-[#4FB3D9]/10 p-3 rounded-full text-[#4FB3D9]">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77383 17.3147 6.72534 15.2662 5.19 12.85C3.49998 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12788 3.62476 2.2165 3.36162C2.30513 3.09849 2.44757 2.85669 2.63477 2.65162C2.82196 2.44655 3.04981 2.28271 3.30379 2.17052C3.55778 2.05833 3.83234 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04208 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94455 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51356 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9752 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0554 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77383 17.3147 6.72534 15.2662 5.19 12.85C3.49998 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12788 3.62476 2.2165 3.36162C2.30513 3.09849 2.44757 2.85669 2.63477 2.65162C2.82196 2.44655 3.04981 2.28271 3.30379 2.17052C3.55778 2.05833 3.83234 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04208 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94455 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51356 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9752 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0554 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   </div>
                   <div>
-                    <h3 className="font-bold text-gray-800 mb-1">Contact Us</h3>
-                    <p className="text-gray-600">Phone: +60 3-2142 6789</p>
-                    <p className="text-gray-600">Email: info@jayanexus.com.my</p>
+                    <h3 className="font-bold text-gray-800 mb-1">{t('contact.contactInfo.title')}</h3>
+                    <p className="text-gray-600">{t('contact.contactInfo.phone')}</p>
+                    <p className="text-gray-600">{t('contact.contactInfo.email')}</p>
                   </div>
                 </div>
               </div>
             </div>
             
             <div className="bg-white rounded-xl shadow-lg p-8">
-              <h3 className="text-2xl font-bold mb-6 text-gray-800">Request a Quote</h3>
+              <h3 className="text-2xl font-bold mb-6 text-gray-800">{t('contact.formTitle')}</h3>
               
-              <form className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}> {/* Add onSubmit handler */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.name')}</label>
                     <input 
                       type="text" 
                       id="name" 
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
-                      placeholder="Your name"
+                      placeholder={t('contact.namePlaceholder')}
+                      value={formData.name} // Add value
+                      onChange={handleInputChange} // Add onChange
+                      required // Add required
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.email')}</label>
                     <input 
                       type="email" 
                       id="email" 
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
-                      placeholder="Your email"
+                      placeholder={t('contact.emailPlaceholder')}
+                      value={formData.email} // Add value
+                      onChange={handleInputChange} // Add onChange
+                      required // Add required
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.phone')}</label>
                   <input 
                     type="tel" 
                     id="phone" 
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
-                    placeholder="Your phone number"
+                    placeholder={t('contact.phonePlaceholder')}
+                    value={formData.phone} // Add value
+                    onChange={handleInputChange} // Add onChange
+                    // Optional: Add validation pattern if needed
                   />
                 </div>
                 
                 <div>
-                  <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">Service Needed</label>
+                  <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.service')}</label>
                   <select 
                     id="service" 
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
+                    value={formData.service} // Add value
+                    onChange={handleInputChange} // Add onChange
+                    required // Add required
                   >
-                    <option value="">Select a service</option>
-                    <option value="commercial">Commercial Building Maintenance</option>
-                    <option value="educational">Educational Facilities</option>
-                    <option value="healthcare">Healthcare Facilities</option>
-                    <option value="specialized">Specialized Cleaning</option>
+                    <option value="">{t('contact.selectService')}</option>
+                    <option value="commercial">{t('services.commercialbuilding.title')}</option>
+                    <option value="educational">{t('services.educational.title')}</option>
+                    <option value="healthcare">{t('services.healthcare.title')}</option>
+                    <option value="specialized">{t('services.specialized.title')}</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.message')}</label>
                   <textarea 
                     id="message" 
                     rows={4} 
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
-                    placeholder="Tell us about your needs"
+                    placeholder={t('contact.messagePlaceholder')}
+                    value={formData.message} // Add value
+                    onChange={handleInputChange} // Add onChange
+                    required // Add required
                   ></textarea>
                 </div>
                 
                 <button 
                   type="submit" 
-                  className="w-full bg-[#4FB3D9] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a8aa8] transition-colors"
+                  className="w-full bg-[#4FB3D9] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a8aa8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isSubmitting} // Disable button while submitting
                 >
-                  Submit Request
+                  {isSubmitting ? t('contact.submitting') : t('contact.submit')} {/* Show loading text */}
                 </button>
+
+                {/* Submission Status Messages */}
+                {submitStatus === 'success' && (
+                  <p className="text-green-600 text-center mt-4">{t('contact.successMessage')}</p>
+                )}
+                {submitStatus === 'error' && (
+                  <p className="text-red-600 text-center mt-4">{t('contact.errorMessage')}</p>
+                )}
               </form>
             </div>
           </div>
@@ -491,20 +598,28 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="relative w-10 h-10 overflow-hidden rounded-full bg-white">
+                <div className="relative w-14 h-14 overflow-hidden rounded-lg bg-white shadow-lg border-2 border-[#4FB3D9] transform hover:scale-105 transition-all duration-300">
                   <OptimizedImage
                     src="/img/logo.jpeg"
                     alt="Jaya Nexus logo"
-                    width={40}
-                    height={40}
-                    className="object-cover"
+                    width={56}
+                    height={56}
+                    className="w-full h-full"
+                    objectFit="cover"
+                    style={{ objectPosition: 'center center' }}
+                    priority
                   />
                 </div>
-                <span className="font-bold text-lg">Jaya Nexus</span>
+                <div>
+                  <span className="font-bold text-lg flex items-center">
+                    <span className="text-[#4FB3D9] mr-1">✦</span> Jaya Nexus
+                  </span>
+                  <p className="text-sm text-gray-400">{t('footer.tagline')}</p>
+                </div>
               </div>
               
               <p className="text-gray-400 mb-6">
-                Professional cleaning services for commercial buildings and educational institutions.
+                {t('footer.description')}
               </p>
               
               <div className="flex gap-4">
@@ -529,56 +644,56 @@ export default function Home() {
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.quickLinks')}</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Home</a></li>
-                <li><a href="#about" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#services" className="text-gray-400 hover:text-white transition-colors">Services</a></li>
-                <li><a href="#portfolio" className="text-gray-400 hover:text-white transition-colors">Portfolio</a></li>
-                <li><a href="#contact" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('nav.home')}</a></li>
+                <li><a href="#about" className="text-gray-400 hover:text-white transition-colors">{t('nav.about')}</a></li>
+                <li><a href="#services" className="text-gray-400 hover:text-white transition-colors">{t('nav.services')}</a></li>
+                <li><a href="#portfolio" className="text-gray-400 hover:text-white transition-colors">{t('nav.portfolio')}</a></li>
+                <li><a href="#contact" className="text-gray-400 hover:text-white transition-colors">{t('nav.contact')}</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Services</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.services')}</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Commercial Cleaning</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Educational Facilities</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Healthcare Cleaning</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Specialized Services</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Maintenance Plans</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.commercialbuilding.title')}</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.educational.title')}</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.healthcare.title')}</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.specialized.title')}</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.maintenance.title')}</a></li>
               </ul>
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4">Contact Info</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.contactInfo')}</h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia</span>
+                  <span className="text-gray-400">{t('footer.address')}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77383 17.3147 6.72534 15.2662 5.19 12.85C3.49998 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12788 3.62476 2.2165 3.36162C2.30513 3.09849 2.44757 2.85669 2.63477 2.65162C2.82196 2.44655 3.04981 2.28271 3.30379 2.17052C3.55778 2.05833 3.83234 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04208 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94455 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51356 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9752 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0554 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">+60 3-2142 6789</span>
+                  <span className="text-gray-400">{t('contact.contactInfo.phone').replace('Phone: ', '')}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M22 6L12 13L2 6" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">info@jayanexus.com.my</span>
+                  <span className="text-gray-400">{t('contact.contactInfo.email').replace('Email: ', '')}</span>
                 </li>
               </ul>
             </div>
           </div>
           
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-500">© 2025 Jaya Nexus Sdn Bhd. All rights reserved.</p>
+            <p className="text-gray-500">{t('footer.copyright')}</p>
           </div>
         </div>
       </footer>

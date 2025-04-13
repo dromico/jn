@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { handleAuthError } from '@/utils/auth-error-handler';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
@@ -22,6 +23,8 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<Date | null>(null);
+  const [secondsLeft, setSecondsLeft] = useState<number>(0);
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
@@ -36,24 +39,77 @@ export function LoginForm() {
     }
   }, [searchParams]);
 
+  // Effect to update the countdown timer
+  useEffect(() => {
+    if (!cooldownUntil) {
+      setSecondsLeft(0);
+      return;
+    }
+
+    // Calculate initial seconds left
+    const calculateSecondsLeft = () => {
+      const now = new Date();
+      if (cooldownUntil > now) {
+        return Math.ceil((cooldownUntil.getTime() - now.getTime()) / 1000);
+      }
+      return 0;
+    };
+
+    // Set initial value
+    setSecondsLeft(calculateSecondsLeft());
+
+    // Set up interval to update the countdown every second
+    const interval = setInterval(() => {
+      const remaining = calculateSecondsLeft();
+      setSecondsLeft(remaining);
+      
+      // Clear the cooldown when time is up
+      if (remaining <= 0) {
+        setCooldownUntil(null);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    // Cleanup interval on unmount or when cooldownUntil changes
+    return () => clearInterval(interval);
+  }, [cooldownUntil]);
+
   const onSubmit = async (data: LoginFormValues) => {
+    // Check cooldown period
+    if (cooldownUntil && new Date() < cooldownUntil) {
+      setError(`Please wait ${secondsLeft} seconds before trying again`);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
       
-      if (signInError) throw signInError;
+      if (authError) {
+        throw authError;
+      }
 
       const redirectTo = searchParams.get('redirectedFrom') || '/dashboard';
       router.push(redirectTo);
       router.refresh();
       
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+    } catch (err: unknown) {
+      const { message, isRateLimited } = handleAuthError(err);
+      
+      // Set cooldown if rate limited
+      if (isRateLimited) {
+        const cooldown = new Date();
+        cooldown.setSeconds(cooldown.getSeconds() + 60); // 1 minute cooldown
+        setCooldownUntil(cooldown);
+      }
+      
+      setError(message);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -89,7 +145,7 @@ export function LoginForm() {
             autoCapitalize="none"
             autoComplete="email"
             autoCorrect="off"
-            disabled={isLoading}
+            disabled={isLoading || secondsLeft > 0}
             {...register('email')}
           />
           {errors.email && (
@@ -104,7 +160,7 @@ export function LoginForm() {
             placeholder="••••••••"
             type="password"
             autoComplete="current-password"
-            disabled={isLoading}
+            disabled={isLoading || secondsLeft > 0}
             {...register('password')}
           />
           {errors.password && (
@@ -112,8 +168,22 @@ export function LoginForm() {
           )}
         </div>
         
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? 'Signing in...' : 'Sign in'}
+        {secondsLeft > 0 && (
+          <div className="text-amber-600 text-sm text-center">
+            Login temporarily disabled due to too many attempts.
+            <div className="font-bold mt-1">Try again in {secondsLeft} seconds</div>
+          </div>
+        )}
+        
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={isLoading || secondsLeft > 0}
+        >
+          {isLoading ? 'Signing in...' : 
+           secondsLeft > 0 ? 
+           `Wait ${secondsLeft}s` : 
+           'Sign in'}
         </Button>
       </form>
     </div>

@@ -14,7 +14,21 @@ interface TaskCalendarProps {
 }
 
 export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskCalendarProps) {
-  const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  interface CalendarEvent {
+    id: string;
+    title: string;
+    start: string | null;
+    backgroundColor: string;
+    borderColor: string;
+    textColor: string;
+    classNames: string[];
+    extendedProps: {
+      description?: string | null;
+      priority: Todo['priority'];
+    };
+  }
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check for mobile view
@@ -22,10 +36,10 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    
+
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -46,7 +60,7 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
           priority: todo.priority
         }
       }));
-    
+
     setCalendarEvents(events);
   }, [todos]);
 
@@ -63,11 +77,24 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
     }
   };
 
-  const handleDateClick = (info: any) => {
+  interface DateClickInfo {
+    dateStr: string;
+    [key: string]: unknown;
+  }
+
+  interface EventClickInfo {
+    event: {
+      id: string;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  }
+
+  const handleDateClick = (info: DateClickInfo) => {
     onDateClick(info.dateStr);
   };
 
-  const handleEventClick = (info: any) => {
+  const handleEventClick = (info: EventClickInfo) => {
     onEventClick(info.event.id);
   };
 
@@ -99,33 +126,33 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
           background-color: hsl(var(--primary) / 0.8);
           border-color: hsl(var(--primary) / 0.8);
         }
-        
+
         /* Mobile Responsive Styles */
         .fc .fc-toolbar {
           gap: 0.5rem;
         }
-        
+
         @media (max-width: 768px) {
           .fc .fc-toolbar {
             flex-direction: column;
             gap: 0.75rem;
           }
-          
+
           .fc .fc-toolbar-title {
             font-size: 1.2rem;
           }
-          
+
           .fc .fc-button {
             padding: 0.3rem 0.5rem;
             font-size: 0.85rem;
           }
-          
+
           .fc .fc-daygrid-day-number,
           .fc .fc-col-header-cell-cushion {
             font-size: 0.85rem;
             padding: 0.2rem;
           }
-          
+
           .fc-event-title {
             font-size: 0.75rem;
             overflow: hidden;
@@ -133,14 +160,14 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
             white-space: nowrap;
           }
         }
-        
+
         /* Fix padding issues on small screens */
         @media (max-width: 640px) {
           .fc-toolbar.fc-header-toolbar {
             padding: 0;
             margin-bottom: 0.5rem !important;
           }
-          
+
           .fc .fc-view-harness {
             height: 400px !important;
           }
@@ -170,7 +197,7 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
         eventContent={(eventInfo) => {
           const priority = eventInfo.event.extendedProps.priority;
           const isCompleted = eventInfo.event.classNames.includes('completed-task');
-          
+
           return (
             <div className={`p-1 ${isCompleted ? 'line-through opacity-70' : ''}`}>
               <div className="text-xs font-semibold overflow-hidden text-overflow-ellipsis whitespace-nowrap">

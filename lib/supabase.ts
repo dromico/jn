@@ -23,26 +23,36 @@ export const supabase = typeof window !== 'undefined'
   : createClient<Database>(supabaseUrl, supabaseAnonKey); // Use direct client in server contexts
 
 // Error message enhancement for schema issues
-export const enhanceErrorMessage = (error: any): string => {
+export const enhanceErrorMessage = (error: unknown): string => {
   if (!error) return 'Unknown error';
-  
-  const message = error.message || 'Unknown error';
-  
+
+  const message = error instanceof Error
+    ? error.message
+    : typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+      ? error.message
+      : 'Unknown error';
+
   // Replace specific error messages with more helpful ones
   if (message.includes('type') && (message.includes('column') || message.includes('schema cache')) && message.includes('invoices')) {
     return 'Database schema needs to be updated - please see the README.md file for instructions on how to fix the "type" column issue.';
   }
-  
+
   return message;
 };
 
 // Utility function to handle type-related database schema errors
-export const handleInvoiceTypeError = async (error: any): Promise<boolean> => {
+export const handleInvoiceTypeError = async (error: unknown): Promise<boolean> => {
   // Check if the error is related to missing 'type' column
-  if (error && error.message && (
-    error.message.includes('column "type" does not exist') || 
-    error.message.includes('column type of relation') ||
-    error.message.includes('Could not find the \'type\' column')
+  const errorMessage = error instanceof Error
+    ? error.message
+    : typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string'
+      ? error.message
+      : '';
+
+  if (errorMessage && (
+    errorMessage.includes('column "type" does not exist') ||
+    errorMessage.includes('column type of relation') ||
+    errorMessage.includes('Could not find the \'type\' column')
   )) {
     try {
       // Try to fix the schema by calling our update-schema endpoint

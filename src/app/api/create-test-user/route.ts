@@ -14,21 +14,21 @@ export async function GET() {
       // Execute SQL to add the type column if it doesn't exist
       const { error: sqlError } = await supabase.rpc('execute_sql', {
         sql_query: `
-          DO $$ 
-          BEGIN 
+          DO $$
+          BEGIN
             IF NOT EXISTS (
-              SELECT 1 
-              FROM information_schema.columns 
-              WHERE table_name = 'invoices' 
+              SELECT 1
+              FROM information_schema.columns
+              WHERE table_name = 'invoices'
               AND column_name = 'type'
             ) THEN
-              ALTER TABLE invoices 
+              ALTER TABLE invoices
               ADD COLUMN type text check (type in ('invoice', 'quotation')) default 'invoice';
             END IF;
           END $$;
         `
       });
-      
+
       if (sqlError) {
         console.error('Error updating schema:', sqlError);
       }
@@ -49,14 +49,17 @@ export async function GET() {
     }
 
     // Return the created user
-    return NextResponse.json({ 
-      message: 'Test user created successfully', 
+    return NextResponse.json({
+      message: 'Test user created successfully',
       user: {
         id: data.user.id,
         email: data.user.email
       }
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

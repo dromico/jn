@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -19,7 +19,8 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export function LoginForm() {
+// Separate component to handle search params
+function LoginFormWithSearchParams() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
-  
+
   const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
@@ -62,7 +63,7 @@ export function LoginForm() {
     const interval = setInterval(() => {
       const remaining = calculateSecondsLeft();
       setSecondsLeft(remaining);
-      
+
       // Clear the cooldown when time is up
       if (remaining <= 0) {
         setCooldownUntil(null);
@@ -83,13 +84,13 @@ export function LoginForm() {
 
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const { error: authError } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
-      
+
       if (authError) {
         throw authError;
       }
@@ -97,17 +98,17 @@ export function LoginForm() {
       const redirectTo = searchParams.get('redirectedFrom') || '/dashboard';
       router.push(redirectTo);
       router.refresh();
-      
+
     } catch (err: unknown) {
       const { message, isRateLimited } = handleAuthError(err);
-      
+
       // Set cooldown if rate limited
       if (isRateLimited) {
         const cooldown = new Date();
         cooldown.setSeconds(cooldown.getSeconds() + 60); // 1 minute cooldown
         setCooldownUntil(cooldown);
       }
-      
+
       setError(message);
     } finally {
       setIsLoading(false);
@@ -122,19 +123,19 @@ export function LoginForm() {
           Enter your credentials to access your account
         </p>
       </div>
-      
+
       {successMessage && (
         <Alert variant="default" className="bg-green-50 border-green-200">
           <AlertDescription className="text-green-700">{successMessage}</AlertDescription>
         </Alert>
       )}
-      
+
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
@@ -152,7 +153,7 @@ export function LoginForm() {
             <p className="text-sm text-red-500">{errors.email.message}</p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -167,25 +168,53 @@ export function LoginForm() {
             <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
-        
+
         {secondsLeft > 0 && (
           <div className="text-amber-600 text-sm text-center">
             Login temporarily disabled due to too many attempts.
             <div className="font-bold mt-1">Try again in {secondsLeft} seconds</div>
           </div>
         )}
-        
-        <Button 
-          type="submit" 
-          className="w-full" 
+
+        <Button
+          type="submit"
+          className="w-full"
           disabled={isLoading || secondsLeft > 0}
         >
-          {isLoading ? 'Signing in...' : 
-           secondsLeft > 0 ? 
-           `Wait ${secondsLeft}s` : 
+          {isLoading ? 'Signing in...' :
+           secondsLeft > 0 ?
+           `Wait ${secondsLeft}s` :
            'Sign in'}
         </Button>
       </form>
     </div>
+  );
+}
+
+// Loading fallback for Suspense
+function LoginFormFallback() {
+  return (
+    <div className="w-full max-w-md space-y-6">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold">Login to your account</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          Enter your credentials to access your account
+        </p>
+      </div>
+      <div className="animate-pulse space-y-4">
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+        <div className="h-10 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+// Main exported component with Suspense boundary
+export function LoginForm() {
+  return (
+    <Suspense fallback={<LoginFormFallback />}>
+      <LoginFormWithSearchParams />
+    </Suspense>
   );
 }

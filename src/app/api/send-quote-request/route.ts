@@ -4,12 +4,13 @@ import { Resend } from 'resend';
 // IMPORTANT: Create a .env.local file in your project root and add your Resend API key:
 // RESEND_API_KEY=your_api_key_here
 // Make sure .env.local is added to your .gitignore file!
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY || 'dummy_key_for_build';
+const resend = new Resend(resendApiKey);
 
 const TO_EMAIL = 'jvsteps@gmail.com';
 // You should use a verified domain with Resend for the FROM_EMAIL in production
 // For testing, 'onboarding@resend.dev' might work, but check Resend's documentation.
-const FROM_EMAIL = 'onboarding@resend.dev'; 
+const FROM_EMAIL = 'onboarding@resend.dev';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,6 +20,15 @@ export async function POST(request: NextRequest) {
     // Basic validation
     if (!name || !email || !service || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Check if we're using a dummy key (for build purposes)
+    if (resendApiKey === 'dummy_key_for_build') {
+      console.warn('Using dummy Resend API key. Email will not be sent.');
+      return NextResponse.json({
+        message: 'Quote request received (but email not sent - missing API key)',
+        warning: 'RESEND_API_KEY not configured in environment variables'
+      }, { status: 200 });
     }
 
     const { data, error } = await resend.emails.send({
@@ -32,7 +42,7 @@ export async function POST(request: NextRequest) {
         <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
         <p><strong>Service Interested In:</strong> ${service}</p>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br>')}</p> 
+        <p>${message.replace(/\n/g, '<br>')}</p>
       `,
       replyTo: email, // Corrected property name from reply_to to replyTo
     });

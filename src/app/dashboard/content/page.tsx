@@ -72,34 +72,46 @@ export default function ContentPage() {
   const [previewUrl, setPreviewUrl] = useState('');
 
   useEffect(() => {
-    // In a real app, fetch from Supabase
-    // const fetchContent = async () => {
-    //   const { data, error } = await supabase
-    //     .from('content_sections')
-    //     .select('*')
-    //     .order('position', { ascending: true });
-    //   
-    //   if (error) {
-    //     console.error('Error fetching content:', error);
-    //     return;
-    //   }
-    //   
-    //   if (data) {
-    //     setSections(data);
-    //   }
-    // };
-    // 
-    // fetchContent();
+    // Check if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      // Set preview URL (in a real app, this would be your actual site URL)
+      setPreviewUrl(window.location.origin);
 
-    // For demo purposes, use mock data
-    setSections(mockContentSections);
-    
-    // Set preview URL (in a real app, this would be your actual site URL)
-    setPreviewUrl(window.location.origin);
+      // For demo purposes or when Supabase is not configured, use mock data
+      setSections(mockContentSections);
+
+      // In a real app with Supabase configured, you would fetch data like this:
+      // const fetchContent = async () => {
+      //   try {
+      //     const { data, error } = await supabase
+      //       .from('content_sections')
+      //       .select('*')
+      //       .order('position', { ascending: true });
+      //
+      //     if (error) {
+      //       console.error('Error fetching content:', error);
+      //       return;
+      //     }
+      //
+      //     if (data && data.length > 0) {
+      //       setSections(data);
+      //     } else {
+      //       // Fallback to mock data if no data is returned
+      //       setSections(mockContentSections);
+      //     }
+      //   } catch (err) {
+      //     console.error('Failed to fetch content sections:', err);
+      //     // Fallback to mock data on error
+      //     setSections(mockContentSections);
+      //   }
+      // };
+      //
+      // fetchContent();
+    }
   }, []);
 
-  const filteredSections = activeTab === 'all' 
-    ? sections 
+  const filteredSections = activeTab === 'all'
+    ? sections
     : sections.filter(section => section.type === activeTab);
 
   const handleEditSection = (section: ContentSection) => {
@@ -118,20 +130,20 @@ export default function ContentPage() {
     //     is_published: selectedSection.is_published,
     //   })
     //   .eq('id', selectedSection.id);
-    // 
+    //
     // if (error) {
     //   console.error('Error saving content:', error);
     //   return;
     // }
 
     // Update local state
-    const updatedSections = sections.map(section => 
+    const updatedSections = sections.map(section =>
       section.id === selectedSection.id ? selectedSection : section
     );
-    
+
     setSections(updatedSections);
     setSelectedSection(null);
-    
+
     // Show saved message
     setSavedMessage(true);
     setTimeout(() => {
@@ -149,7 +161,7 @@ export default function ContentPage() {
       position: sections.length + 1,
       is_published: false,
     };
-    
+
     setSelectedSection(newSection);
   };
 
@@ -159,7 +171,7 @@ export default function ContentPage() {
     //   .from('content_sections')
     //   .delete()
     //   .eq('id', id);
-    // 
+    //
     // if (error) {
     //   console.error('Error deleting section:', error);
     //   return;
@@ -172,20 +184,20 @@ export default function ContentPage() {
 
   const togglePublishStatus = async (section: ContentSection) => {
     const updatedSection = { ...section, is_published: !section.is_published };
-    
+
     // In a real app, update in Supabase
     // const { error } = await supabase
     //   .from('content_sections')
     //   .update({ is_published: updatedSection.is_published })
     //   .eq('id', section.id);
-    // 
+    //
     // if (error) {
     //   console.error('Error updating publish status:', error);
     //   return;
     // }
 
     // Update local state
-    const updatedSections = sections.map(s => 
+    const updatedSections = sections.map(s =>
       s.id === section.id ? updatedSection : s
     );
     setSections(updatedSections);
@@ -194,25 +206,25 @@ export default function ContentPage() {
   const moveSection = (sectionId: string, direction: 'up' | 'down') => {
     const sectionIndex = sections.findIndex(s => s.id === sectionId);
     if (
-      (direction === 'up' && sectionIndex === 0) || 
+      (direction === 'up' && sectionIndex === 0) ||
       (direction === 'down' && sectionIndex === sections.length - 1)
     ) {
       return;
     }
-    
+
     const newSections = [...sections];
     const swapIndex = direction === 'up' ? sectionIndex - 1 : sectionIndex + 1;
-    
+
     // Swap positions
-    [newSections[sectionIndex].position, newSections[swapIndex].position] = 
+    [newSections[sectionIndex].position, newSections[swapIndex].position] =
       [newSections[swapIndex].position, newSections[sectionIndex].position];
-    
+
     // Swap elements in array
-    [newSections[sectionIndex], newSections[swapIndex]] = 
+    [newSections[sectionIndex], newSections[swapIndex]] =
       [newSections[swapIndex], newSections[sectionIndex]];
-    
+
     setSections(newSections);
-    
+
     // In a real app, also update positions in database
     // const batch = [
     //   { id: newSections[sectionIndex].id, position: newSections[sectionIndex].position },

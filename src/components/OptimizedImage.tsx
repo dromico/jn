@@ -16,6 +16,7 @@ interface OptimizedImageProps extends Omit<ImageProps, 'onLoad'> {
   lazyBoundary?: string;
   className?: string;
   style?: React.CSSProperties;
+  objectFit?: 'cover' | 'contain' | 'fill';
 }
 
 export default function OptimizedImage({
@@ -30,10 +31,12 @@ export default function OptimizedImage({
   blurDataURL,
   lazyBoundary = '200px',
   className,
+  objectFit = 'cover',
   style,
   ...props
 }: OptimizedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const [supportsWebp, setSupportsWebp] = useState(false);
   const [supportsAvif, setSupportsAvif] = useState(false);
 
@@ -67,14 +70,26 @@ export default function OptimizedImage({
 
   // Generate optimized image path
   const getOptimizedSrc = useMemo(() => {
-    /* If it's not a local image or it's the logo, use the original source
-    if (!src.includes('/app/img/') || src.includes('logo')) {
+    // If there was an error loading the optimized image, fallback to original source
+    if (hasError) {
+      return src;
+    }
+
+    // If it's not a local image or it's the logo, use the original source
+    if (src.includes('logo')) {
       return src;
     }
 
     // Extract the base filename
-    const basePath = src.replace('/app/img/', '');
-    const fileName = basePath.split('.')[0];
+    let fileName;
+    if (src.startsWith('/img/')) {
+      const basePath = src.replace('/img/', '');
+      fileName = basePath.split('.')[0];
+    } else {
+      // For other paths, just get the filename
+      const basePath = src.split('/').pop() || '';
+      fileName = basePath.split('.')[0];
+    }
 
     // Determine the best format based on browser support
     let format = 'jpg';
@@ -84,48 +99,66 @@ export default function OptimizedImage({
       format = 'webp';
     }
 
-    // For now, use a fixed size - in a real implementation, this would be responsive
-    // based on the container width and device pixel ratio
-    const size = width <= 640 ? 640 : width <= 1024 ? 1024 : 1920;
+    // Use a more conservative size selection to ensure files exist
+    // For clean10 (480px original), only use 320px
+    // For other images, use appropriate sizes
+    let size = 320; // Default to smallest size
+
+    if (fileName === 'clean10') {
+      // clean10 is only 480px wide, so only 320px version exists
+      size = 320;
+    } else {
+      // For other images, use normal size selection
+      if (width > 320) size = 640;
+      if (width > 640) size = 1024;
+      if (width > 1024) size = 1920;
+    }
 
     return `/optimized-img/${fileName}-${size}.${format}`;
-    */
-    return src;
-  }, [src, width, supportsWebp, supportsAvif]);
+  }, [src, width, supportsWebp, supportsAvif, hasError]);
 
   // Generate blur placeholder URL
   const placeholderUrl = useMemo(() => {
-    /* if (!src.includes('/img/') || src.includes('logo')) {
+    if (src.includes('logo')) {
       return undefined;
     }
 
-    
-    const basePath = src.replace('/app/img/', '');
-    const fileName = basePath.split('.')[0];
+    let fileName;
+    if (src.startsWith('/img/')) {
+      const basePath = src.replace('/img/', '');
+      fileName = basePath.split('.')[0];
+    } else {
+      const basePath = src.split('/').pop() || '';
+      fileName = basePath.split('.')[0];
+    }
     return `/optimized-img/${fileName}-placeholder.jpg`;
-    */
-    return undefined;
   }, [src]);
 
   return (
-    <div 
-      className={`relative overflow-hidden ${className || ''}`} 
+    <div
+      className={`relative overflow-hidden w-full h-full ${className || ''}`}
       style={style}
     >
       <Image
-        src={src} // Keep original src for Next.js image optimization
+        src={getOptimizedSrc} // Use optimized src when available
         alt={alt}
         width={width}
         height={height}
         loading={priority ? 'eager' : 'lazy'}
         onLoad={() => setIsLoaded(true)}
+        onError={() => {
+          setHasError(true);
+          console.warn(`Failed to load image: ${getOptimizedSrc}`);
+        }}
         className={`
-          transition-opacity duration-500 
+          transition-opacity duration-500
+          w-full h-full
           ${isLoaded ? 'opacity-100' : 'opacity-0'}
         `}
-        style={{ 
-          objectFit: 'cover',
+        style={{
+          objectFit,
           zIndex: 2,
+          objectPosition: 'center',
           position: 'relative'
         }}
         sizes={sizes}

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const { sql } = body;
 
     // Safety check - only allow ALTER TABLE operations that add columns
-    if (!sql || typeof sql !== 'string' || !sql.toLowerCase().includes('alter table') || 
+    if (!sql || typeof sql !== 'string' || !sql.toLowerCase().includes('alter table') ||
         !sql.toLowerCase().includes('add column')) {
       return NextResponse.json({ error: 'Invalid SQL command' }, { status: 400 });
     }
@@ -27,8 +27,11 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ message: 'SQL executed successfully' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in execute-sql API:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error
+      ? error.message
+      : 'Unknown error occurred';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

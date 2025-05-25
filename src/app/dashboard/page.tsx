@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/layout/dashboard-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatDate, formatCurrency } from '../../lib/utils';
-import { supabase } from '@/lib/supabase';
+import { formatDate, formatCurrency } from '@/src/lib/utils';
+import { browserSupabase } from '@/lib/supabase';
 
 interface DashboardStats {
   totalTasks: number;
@@ -22,15 +22,6 @@ interface RecentActivity {
   status?: string;
 }
 
-interface Invoice {
-  id: string;
-  number: string;
-  customer_name: string | null;
-  date: string;
-  status: string;
-  total: number;
-}
-
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats>({
     totalTasks: 0,
@@ -45,44 +36,64 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       setIsLoading(true);
-      
+
       try {
+        // Check if Supabase is configured
+        if (!browserSupabase) {
+          console.error('Supabase is not configured');
+          return;
+        }
+
         // Get user data
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await browserSupabase.auth.getUser();
         if (user?.user_metadata?.name) {
           setUserName(user.user_metadata.name);
         } else {
           setUserName(user?.email?.split('@')[0] || 'User');
         }
-        
+
         // Fetch real task statistics from the database
-        const { data: tasks, error: tasksError } = await supabase
+        const { data: tasks, error: tasksError } = await browserSupabase
           .from('todos')
           .select('completed');
-        
-        if (tasksError) {
-          console.error('Error fetching tasks:', tasksError);
-          throw tasksError;
-        }
-        
+
         // Calculate task statistics
-        const totalTasks = tasks?.length || 0;
-        const completedTasks = tasks?.filter(task => task.completed).length || 0;
+        let totalTasks = 0;
+        let completedTasks = 0;
+
+        if (tasksError) {
+          console.error('Error fetching tasks:', {
+            message: tasksError.message,
+            details: tasksError.details,
+            hint: tasksError.hint,
+            code: tasksError.code
+          });
+        } else {
+          totalTasks = tasks?.length || 0;
+          completedTasks = tasks?.filter(task => task.completed).length || 0;
+        }
 
         // Fetch real invoice data
-        const { data: invoices, error: invoicesError } = await supabase
+        const { data: invoices, error: invoicesError } = await browserSupabase
           .from('invoices')
           .select('*');
 
+        // Calculate invoice statistics
+        let pendingInvoices = 0;
+        let totalRevenue = 0;
+
         if (invoicesError) {
-          console.error('Error fetching invoices:', invoicesError);
-          throw invoicesError;
+          console.error('Error fetching invoices:', {
+            message: invoicesError.message,
+            details: invoicesError.details,
+            hint: invoicesError.hint,
+            code: invoicesError.code
+          });
+        } else {
+          pendingInvoices = invoices?.filter(invoice => invoice.status !== 'paid').length || 0;
+          totalRevenue = invoices?.reduce((sum, invoice) => sum + (invoice.total || 0), 0) || 0;
         }
 
-        // Calculate invoice statistics
-        const pendingInvoices = invoices?.filter(invoice => invoice.status !== 'paid').length || 0;
-        const totalRevenue = invoices?.reduce((sum, invoice) => sum + (invoice.total || 0), 0) || 0;
-        
         // Set statistics
         setStats({
           totalTasks,
@@ -90,57 +101,67 @@ export default function DashboardPage() {
           pendingInvoices,
           totalRevenue,
         });
-        
+
         // Fetch recent todo activity
-        const { data: recentTodos, error: todosError } = await supabase
+        const { data: recentTodos, error: todosError } = await browserSupabase
           .from('todos')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(3);
-          
+
         if (todosError) {
-          console.error('Error fetching recent todos:', todosError);
+          console.error('Error fetching recent todos:', {
+            message: todosError.message,
+            details: todosError.details,
+            hint: todosError.hint,
+            code: todosError.code
+          });
         }
-        
+
         // Fetch recent invoice activity
-        const { data: recentInvoices, error: recentInvoicesError } = await supabase
+        const { data: recentInvoices, error: recentInvoicesError } = await browserSupabase
           .from('invoices')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(2);
-          
+
         if (recentInvoicesError) {
-          console.error('Error fetching recent invoices:', recentInvoicesError);
+          console.error('Error fetching recent invoices:', {
+            message: recentInvoicesError.message,
+            details: recentInvoicesError.details,
+            hint: recentInvoicesError.hint,
+            code: recentInvoicesError.code
+          });
         }
-        
+
         // Convert todos to activity format with proper type casting
-        const todoActivities = recentTodos?.map(todo => ({
+        const todoActivities = recentTodos?.map((todo: any) => ({
           id: todo.id,
           type: 'task' as const, // Use const assertion to fix the type constraint
           title: todo.title,
           date: todo.created_at,
           status: todo.completed ? 'Completed' : 'In Progress'
         })) || [];
-        
+
         // Convert invoices to activity format
-        const invoiceActivities = recentInvoices?.map(invoice => ({
+        const invoiceActivities = recentInvoices?.map((invoice: any) => ({
           id: invoice.id,
           type: 'invoice' as const,
           title: `Invoice #${invoice.number} ${invoice.customer_name ? `to ${invoice.customer_name}` : ''}`,
           date: invoice.created_at || invoice.date,
           status: invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)
         })) || [];
-        
+
         // Combine and set the recent activity - removed webhook and content mock activities
         setRecentActivity([...todoActivities, ...invoiceActivities].slice(0, 5));
-        
+
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
 
@@ -177,7 +198,7 @@ export default function DashboardPage() {
 
   const getStatusColor = (status: string | undefined) => {
     if (!status) return '';
-    
+
     switch (status.toLowerCase()) {
       case 'completed':
       case 'published':
@@ -226,7 +247,7 @@ export default function DashboardPage() {
                 {getCompletionRate()}% completion rate
               </p>
               <div className="mt-4">
-                <Link 
+                <Link
                   href="/dashboard/todos"
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >
@@ -235,7 +256,7 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Invoices</CardTitle>
@@ -249,7 +270,7 @@ export default function DashboardPage() {
                 {stats.pendingInvoices} pending invoices
               </p>
               <div className="mt-4">
-                <Link 
+                <Link
                   href="/dashboard/invoices"
                   className="text-sm font-medium text-blue-600 hover:underline"
                 >

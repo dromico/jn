@@ -27,7 +27,7 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-  
+
   const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
   });
@@ -35,7 +35,7 @@ export function RegisterForm() {
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const { error: signUpError } = await supabase.auth.signUp({
         email: data.email,
@@ -46,13 +46,17 @@ export function RegisterForm() {
           },
         },
       });
-      
+
       if (signUpError) throw signUpError;
-      
+
       // Redirect to login page with success message
       router.push('/login?registered=true');
-    } catch (err: any) {
-      setError(err.message || 'Failed to register');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || 'Failed to register');
+      } else {
+        setError('Failed to register');
+      }
       setIsLoading(false);
     }
   };
@@ -65,13 +69,13 @@ export function RegisterForm() {
           Enter your information to create an account
         </p>
       </div>
-      
+
       {error && (
         <Alert variant="destructive">
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
@@ -89,7 +93,7 @@ export function RegisterForm() {
             <p className="text-sm text-red-500">{errors.name.message}</p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
@@ -106,7 +110,7 @@ export function RegisterForm() {
             <p className="text-sm text-red-500">{errors.email.message}</p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
           <Input
@@ -121,7 +125,7 @@ export function RegisterForm() {
             <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
           <Input
@@ -136,7 +140,7 @@ export function RegisterForm() {
             <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
           )}
         </div>
-        
+
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? 'Creating account...' : 'Create account'}
         </Button>

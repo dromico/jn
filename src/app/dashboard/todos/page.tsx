@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/lib/supabase';
+import { browserSupabase } from '@/lib/supabase';
 import { formatDate } from '@/src/lib/utils';
 import { Loader2, Calendar, List } from 'lucide-react';
 import TaskCalendar from '@/components/tasks/task-calendar';
@@ -65,7 +65,11 @@ export default function TodosPage() {
 
   useEffect(() => {
     const getCurrentUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      if (!browserSupabase) {
+        setError('Supabase is not configured');
+        return;
+      }
+      const { data: { user } } = await browserSupabase.auth.getUser();
       if (user) {
         setUserId(user.id);
       }
@@ -77,15 +81,19 @@ export default function TodosPage() {
   useEffect(() => {
     const fetchTodos = async () => {
       try {
-        const { data, error } = await supabase
+        if (!browserSupabase) {
+          setError('Supabase is not configured');
+          return;
+        }
+        const { data, error } = await browserSupabase
           .from('todos')
           .select('*')
           .order('created_at', { ascending: false });
-        
+
         if (error) {
           throw error;
         }
-        
+
         setTodos(data || []);
       } catch (err: any) {
         setError('Failed to load todos: ' + err.message);
@@ -111,8 +119,8 @@ export default function TodosPage() {
     // Apply search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      result = result.filter(todo => 
-        todo.title.toLowerCase().includes(query) || 
+      result = result.filter(todo =>
+        todo.title.toLowerCase().includes(query) ||
         (todo.description && todo.description.toLowerCase().includes(query))
       );
     }
@@ -147,7 +155,7 @@ export default function TodosPage() {
     const completed = todos.filter(todo => todo.completed).length;
     const active = total - completed;
     const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     const dueSoon = todos.filter(todo => {
       if (!todo.due_date || todo.completed) return false;
       const dueDate = new Date(todo.due_date);
@@ -163,19 +171,19 @@ export default function TodosPage() {
   const onSubmit = async (data: TodoFormValues) => {
     try {
       // Ensure user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const { data: { user } } = await browserSupabase.auth.getUser();
+
       if (!user) {
         setError("You must be logged in to create or update tasks");
         return;
       }
-      
+
       // Use the user ID from the current auth state instead of the stored state
       const currentUserId = user.id;
 
       if (editingTodo) {
         // Update existing todo
-        const { error } = await supabase
+        const { error } = await browserSupabase
           .from('todos')
           .update({
             title: data.title,
@@ -192,10 +200,10 @@ export default function TodosPage() {
         }
 
         // Update local state
-        setTodos(todos.map(todo => 
-          todo.id === editingTodo.id 
-            ? { 
-                ...todo, 
+        setTodos(todos.map(todo =>
+          todo.id === editingTodo.id
+            ? {
+                ...todo,
                 title: data.title,
                 description: data.description || null,
                 due_date: data.due_date || null,
@@ -215,10 +223,10 @@ export default function TodosPage() {
           completed: false,
           user_id: currentUserId
         };
-        
+
         console.log('Creating todo with data:', newTodo);
-        
-        const { data: createdTodo, error } = await supabase
+
+        const { data: createdTodo, error } = await browserSupabase
           .from('todos')
           .insert([newTodo])
           .select()
@@ -255,9 +263,9 @@ export default function TodosPage() {
 
   const toggleTodoStatus = async (todo: Todo) => {
     try {
-      const { error } = await supabase
+      const { error } = await browserSupabase
         .from('todos')
-        .update({ 
+        .update({
           completed: !todo.completed,
           updated_at: new Date().toISOString()
         })
@@ -265,8 +273,8 @@ export default function TodosPage() {
 
       if (error) throw error;
 
-      setTodos(todos.map(t => 
-        t.id === todo.id 
+      setTodos(todos.map(t =>
+        t.id === todo.id
           ? { ...t, completed: !t.completed, updated_at: new Date().toISOString() }
           : t
       ));
@@ -287,7 +295,7 @@ export default function TodosPage() {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await browserSupabase
         .from('todos')
         .delete()
         .eq('id', id);
@@ -330,7 +338,7 @@ export default function TodosPage() {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
   };
-  
+
   // Calendar event handlers
   const handleCalendarDateClick = (date: string) => {
     // Set the due date in the form and focus the form
@@ -359,7 +367,7 @@ export default function TodosPage() {
   };
 
   const handleSelectTodo = (todoId: string) => {
-    setSelectedTodos(prev => 
+    setSelectedTodos(prev =>
       prev.includes(todoId)
         ? prev.filter(id => id !== todoId)
         : [...prev, todoId]
@@ -369,14 +377,14 @@ export default function TodosPage() {
   // Bulk actions
   const handleBulkComplete = async () => {
     if (selectedTodos.length === 0) return;
-    
+
     try {
       setIsBulkActionsLoading(true);
-      
+
       // Update all selected todos to completed
-      const { error } = await supabase
+      const { error } = await browserSupabase
         .from('todos')
-        .update({ 
+        .update({
           completed: true,
           updated_at: new Date().toISOString()
         })
@@ -385,7 +393,7 @@ export default function TodosPage() {
       if (error) throw error;
 
       // Update local state
-      setTodos(todos.map(todo => 
+      setTodos(todos.map(todo =>
         selectedTodos.includes(todo.id)
           ? { ...todo, completed: true, updated_at: new Date().toISOString() }
           : todo
@@ -397,7 +405,7 @@ export default function TodosPage() {
       setError(err.message || 'Failed to update tasks');
     } finally {
       setIsBulkActionsLoading(false);
-      
+
       setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
@@ -406,16 +414,16 @@ export default function TodosPage() {
 
   const handleBulkDelete = async () => {
     if (selectedTodos.length === 0) return;
-    
+
     if (!confirm(`Are you sure you want to delete ${selectedTodos.length} tasks?`)) {
       return;
     }
-    
+
     try {
       setIsBulkActionsLoading(true);
-      
+
       // Delete all selected todos
-      const { error } = await supabase
+      const { error } = await browserSupabase
         .from('todos')
         .delete()
         .in('id', selectedTodos);
@@ -431,7 +439,7 @@ export default function TodosPage() {
       setError(err.message || 'Failed to delete tasks');
     } finally {
       setIsBulkActionsLoading(false);
-      
+
       setTimeout(() => {
         setSuccessMessage(null);
       }, 3000);
@@ -441,7 +449,11 @@ export default function TodosPage() {
   // Initial user authentication check
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
+      if (!browserSupabase) {
+        setError('Supabase is not configured');
+        return;
+      }
+      const { data: { user }, error } = await browserSupabase.auth.getUser();
       if (error) {
         console.error('Auth error:', error);
         setError("Authentication error. Please try logging in again.");
@@ -612,7 +624,7 @@ export default function TodosPage() {
                       aria-label="Search tasks"
                     />
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2">
                     <div className="flex rounded-md overflow-hidden" role="group" aria-label="Filter tasks">
                       <Button
@@ -640,7 +652,7 @@ export default function TodosPage() {
                         Completed
                       </Button>
                     </div>
-                    
+
                     <select
                       className="p-2 border rounded-md"
                       value={sortOption}
@@ -660,9 +672,9 @@ export default function TodosPage() {
               {!isLoading && filteredTodos.length > 0 && (
                 <div className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-md border">
                   <div className="flex items-center">
-                    <Checkbox 
+                    <Checkbox
                       checked={
-                        filteredTodos.length > 0 && 
+                        filteredTodos.length > 0 &&
                         selectedTodos.length === filteredTodos.length
                       }
                       onCheckedChange={handleSelectAll}
@@ -673,7 +685,7 @@ export default function TodosPage() {
                       {selectedTodos.length} selected
                     </span>
                   </div>
-                  
+
                   {selectedTodos.length > 0 && (
                     <div className="flex gap-2">
                       <Button
@@ -784,7 +796,7 @@ export default function TodosPage() {
           ) : (
             /* Calendar View */
             <>
-              <TaskCalendar 
+              <TaskCalendar
                 todos={todos}
                 onDateClick={handleCalendarDateClick}
                 onEventClick={handleCalendarEventClick}

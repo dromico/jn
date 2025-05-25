@@ -42,21 +42,31 @@ A high-performance website for Jaya Nexus Sdn Bhd cleaning services, specializin
    yarn
    ```
 
-3. Optimize images (optional, as optimized images are included in the repository):
+3. Set up environment variables:
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env.local
+
+   # Edit .env.local and add your Supabase credentials
+   # NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+   # NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
+
+4. Optimize images (optional, as optimized images are included in the repository):
    ```bash
    npm run optimize-images
    # or
    yarn optimize-images
    ```
 
-4. Run the development server:
+5. Run the development server:
    ```bash
    npm run dev
    # or
    yarn dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the website.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser to see the website.
 
 ## Image Optimization
 
@@ -67,6 +77,19 @@ The website uses several techniques to ensure optimal image loading and performa
 3. **Lazy Loading**: Images are loaded only when they enter the viewport
 4. **Blur-up Effect**: Low-resolution placeholders are shown while images load
 5. **Optimized Compression**: Quality settings are balanced for file size and visual quality
+
+## Environment Variables
+
+The application requires the following environment variables to be set:
+
+- `NEXT_PUBLIC_SUPABASE_URL`: Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+
+These variables are used to connect to your Supabase backend for authentication and data storage. You can find these values in your Supabase project dashboard under Project Settings > API.
+
+For local development, copy `.env.example` to `.env.local` and fill in the values. For production deployment, set these environment variables in your hosting platform (Vercel, Netlify, etc.).
+
+> **Note**: The application will still build and run without these variables, but authentication and database features will not work correctly. Mock data will be used instead.
 
 ## Performance Optimizations
 

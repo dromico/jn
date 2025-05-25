@@ -74,7 +74,7 @@ export default function OptimizedImage({
     if (hasError) {
       return src;
     }
-    
+
     // If it's not a local image or it's the logo, use the original source
     if (src.includes('logo')) {
       return src;
@@ -99,9 +99,20 @@ export default function OptimizedImage({
       format = 'webp';
     }
 
-    // For now, use a fixed size - in a real implementation, this would be responsive
-    // based on the container width and device pixel ratio
-    const size = width <= 640 ? 640 : width <= 1024 ? 1024 : 1920;
+    // Use a more conservative size selection to ensure files exist
+    // For clean10 (480px original), only use 320px
+    // For other images, use appropriate sizes
+    let size = 320; // Default to smallest size
+
+    if (fileName === 'clean10') {
+      // clean10 is only 480px wide, so only 320px version exists
+      size = 320;
+    } else {
+      // For other images, use normal size selection
+      if (width > 320) size = 640;
+      if (width > 640) size = 1024;
+      if (width > 1024) size = 1920;
+    }
 
     return `/optimized-img/${fileName}-${size}.${format}`;
   }, [src, width, supportsWebp, supportsAvif, hasError]);
@@ -111,7 +122,7 @@ export default function OptimizedImage({
     if (src.includes('logo')) {
       return undefined;
     }
-    
+
     let fileName;
     if (src.startsWith('/img/')) {
       const basePath = src.replace('/img/', '');
@@ -124,8 +135,8 @@ export default function OptimizedImage({
   }, [src]);
 
   return (
-    <div 
-      className={`relative overflow-hidden w-full h-full ${className || ''}`} 
+    <div
+      className={`relative overflow-hidden w-full h-full ${className || ''}`}
       style={style}
     >
       <Image
@@ -137,17 +148,14 @@ export default function OptimizedImage({
         onLoad={() => setIsLoaded(true)}
         onError={() => {
           setHasError(true);
-          // If optimized version fails, try the original
-          if (!getOptimizedSrc.includes('/img/')) {
-            console.warn(`Failed to load optimized image: ${getOptimizedSrc}, falling back to original: ${src}`);
-          }
+          console.warn(`Failed to load image: ${getOptimizedSrc}`);
         }}
         className={`
-          transition-opacity duration-500 
+          transition-opacity duration-500
           w-full h-full
           ${isLoaded ? 'opacity-100' : 'opacity-0'}
         `}
-        style={{ 
+        style={{
           objectFit,
           zIndex: 2,
           objectPosition: 'center',

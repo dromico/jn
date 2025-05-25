@@ -38,28 +38,47 @@ export default function Home() {
     { label: "Login", href: "/login", isButton: true },
   ];
 
-  // Testimonials data
+  // Testimonials data with Malaysian names
   const testimonials = [
     {
       id: 1,
-      name: "Sarah Chen",
+      name: "Siti Nurhaliza Ahmad",
       position: "Facility Manager",
       company: "Kuala Lumpur International School",
-      quote: "Jaya Nexus transformed our school facilities. Their attention to detail and eco-friendly cleaning solutions have created a healthier environment for our students and staff. Highly recommended!",
+      quote: "Jaya Nexus transformed our school facilities completely! Their attention to detail and eco-friendly cleaning solutions have created a healthier environment for our students and staff. The team is so professional and reliable.",
+      location: "Kuala Lumpur",
     },
     {
       id: 2,
-      name: "Ahmad Rizal",
+      name: "Ahmad Faizal Rahman",
       position: "Operations Director",
       company: "Menara Commerce Tower",
-      quote: "We've partnered with Jaya Nexus for over 3 years now. Their professional team consistently delivers exceptional cleaning services for our 40-floor commercial building. Reliable and thorough!",
+      quote: "We've partnered with Jaya Nexus for over 3 years now. Their professional team consistently delivers exceptional cleaning services for our 40-floor commercial building. Always on time and thorough!",
+      location: "KLCC, KL",
     },
     {
       id: 3,
-      name: "Dr. Lim Wei Ling",
+      name: "Dr. Lim Wei Ming",
       position: "Medical Director",
       company: "Selangor Medical Center",
-      quote: "In healthcare, cleanliness is critical. Jaya Nexus understands our specialized needs and provides sanitization services that meet our strict medical standards. A trusted partner in our operations.",
+      quote: "In healthcare, cleanliness is critical. Jaya Nexus understands our specialized needs perfectly and provides sanitization services that exceed our strict medical standards. A trusted partner in our operations.",
+      location: "Selangor",
+    },
+    {
+      id: 4,
+      name: "Priya Devi Krishnan",
+      position: "Property Manager",
+      company: "Sunway Pyramid Residences",
+      quote: "Managing multiple residential properties requires reliable cleaning services. Jaya Nexus has consistently delivered excellent results across all our units. Their post-renovation cleaning is particularly impressive.",
+      location: "Subang Jaya",
+    },
+    {
+      id: 5,
+      name: "Tan Chee Keong",
+      position: "Restaurant Owner",
+      company: "Golden Dragon Restaurant",
+      quote: "As a restaurant owner, cleanliness is crucial for our business success. Jaya Nexus understands this perfectly and helps us maintain the highest hygiene standards. Their commercial cleaning service is top-notch.",
+      location: "Petaling Jaya",
     },
   ];
 
@@ -151,10 +170,10 @@ export default function Home() {
   return (
     <div className="min-h-screen font-[family-name:var(--font-geist-sans)]">
       {/* Sticky Navigation Bar */}
-      <StickyNavbar 
-        logoSrc="/img/logo.jpeg" 
-        companyName="Jaya Nexus" 
-        navItems={navItems} 
+      <StickyNavbar
+        logoSrc="/img/logo.jpeg"
+        companyName="Jaya Nexus"
+        navItems={navItems}
       />
 
       {/* Hero Section with Parallax */}
@@ -173,7 +192,7 @@ export default function Home() {
           />
           <div className="absolute inset-0 bg-black/50 z-10"></div>
         </div>
-        
+
         {/* Hero Content */}
         <div className="container mx-auto px-4 relative z-20 text-white text-center">
           <ParallaxSection speed={0.3}>
@@ -181,24 +200,24 @@ export default function Home() {
               <h1 className="text-4xl md:text-6xl font-bold mb-6 text-shadow-md">
                 {t('hero.title')} <span className="text-[#4FB3D9]">{t('hero.titleHighlight')}</span>
               </h1>
-              
+
               <p className="text-xl md:text-2xl mb-8 text-shadow-sm max-w-2xl mx-auto">
                 {t('hero.subtitle')}
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <CTAButton 
-                  href="#contact" 
-                  variant="primary" 
+                <CTAButton
+                  href="#contact"
+                  variant="primary"
                   size="lg"
                   withSparkle
                   className="bg-[#4FB3D9] hover:bg-[#3a8aa8]"
                 >
                   {t('hero.cta.quote')}
                 </CTAButton>
-                
-                <CTAButton 
-                  href="#services" 
+
+                <CTAButton
+                  href="#services"
                   variant="secondary"
                   size="lg"
                 >
@@ -208,7 +227,7 @@ export default function Home() {
             </div>
           </ParallaxSection>
         </div>
-        
+
         {/* Animated cleaning elements */}
         <div className="absolute bottom-10 left-10 z-[95] opacity-80 hidden md:block">
           <CleaningMotion />
@@ -226,11 +245,11 @@ export default function Home() {
               <h2 className="text-3xl font-bold mb-6 text-gray-800">
                 {t('about.title')} <span className="text-[#4FB3D9]">{t('about.titleHighlight')}</span>
               </h2>
-              
+
               <p className="text-gray-600 mb-6 leading-relaxed">
                 {t('about.description')}
               </p>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="flex items-start gap-2">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -257,21 +276,21 @@ export default function Home() {
                   <span className="text-gray-700">{t('about.features.quality')}</span>
                 </div>
               </div>
-              
-              <CTAButton 
-                href="#contact" 
+
+              <CTAButton
+                href="#contact"
                 variant="primary"
                 className="bg-[#4FB3D9] hover:bg-[#3a8aa8]"
               >
                 {t('about.cta')}
               </CTAButton>
             </div>
-            
+
             <div className="relative">
               <div className="relative rounded-lg overflow-hidden shadow-xl">
                 {/* Consider using a more professional team photo or an image showcasing eco-friendly practices here */}
                 <OptimizedImage
-                  src="/img/clean2.jpeg" 
+                  src="/img/clean2.jpeg"
                   alt="Jaya Nexus cleaning team working" // Improved alt text
                   width={600}
                   height={400}
@@ -279,7 +298,7 @@ export default function Home() {
                   objectFit="cover"
                 />
               </div>
-              
+
               <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-3">
                   <div className="bg-[#4FB3D9] rounded-full p-3">
@@ -294,7 +313,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="absolute -top-6 -right-6 bg-white p-4 rounded-lg shadow-lg">
                 <div className="flex items-center gap-3">
                   <div className="bg-[#4FB3D9] rounded-full p-3">
@@ -312,7 +331,7 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            
+
           </div>
         </div>
       </section>
@@ -326,11 +345,11 @@ export default function Home() {
               {t('services.description')}
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {services.map((service, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className="service-card bg-white rounded-xl p-6 shadow-md hover:shadow-xl transition-all"
               >
                 <div className="mb-4 text-[#4FB3D9]">
@@ -343,7 +362,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* Portfolio/Gallery Section */}
       <section id="portfolio" className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -353,9 +372,9 @@ export default function Home() {
               {t('portfolio.description')}
             </p>
           </div>
-          
+
           {/* Updated grid layout to accommodate more cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"> 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Existing Portfolio Cards */}
             <ServiceCard
               src="/img/clean3.jpg" // Office space
@@ -365,8 +384,8 @@ export default function Home() {
               width={600} // Maintain consistent sizing if desired
               height={400} // Maintain consistent sizing if desired
             />
-            
-            <ServiceCard 
+
+            <ServiceCard
               src="/img/clean4.jpeg" // Educational facility
               alt={t('portfolio.educational.title')}
               title={t('portfolio.educational.title')}
@@ -374,26 +393,25 @@ export default function Home() {
               width={600}
               height={400}
             />
-            
-            <ServiceCard 
-              src="/img/clean7.jpeg" // Healthcare/Specialized (Using clean7 instead of clean5)
+
+            <ServiceCard
+             src="/img/clean11.jpg" // Healthcare/Specialized (Updated to clean11)
               alt={t('portfolio.healthcare.title')}
               title={t('portfolio.healthcare.title')}
               description={t('portfolio.healthcare.description')}
               width={600}
               height={400}
             />
-
-            <ServiceCard 
+            <ServiceCard
               src="/img/clean8.jpg" // Classroom/Educational
               alt={t('services.classroom.title')} // Assuming translation exists
               title={t('services.classroom.title')} // Assuming translation exists
               description={t('services.classroom.description')} // Assuming translation exists
-              width={600} 
+              width={600}
               height={400}
             />
-            
-            <ServiceCard 
+
+            <ServiceCard
               src="/img/clean9.jpg" // Commercial space
               alt={t('services.commercial.title')} // Assuming translation exists
               title={t('services.commercial.title')} // Assuming translation exists
@@ -401,8 +419,8 @@ export default function Home() {
               width={600}
               height={400}
             />
-            
-            <ServiceCard 
+
+            <ServiceCard
               src="/img/clean10.jpg" // Landscape/Outdoor
               alt={t('services.landscape.title')} // Assuming translation exists
               title={t('services.landscape.title')} // Assuming translation exists
@@ -411,7 +429,7 @@ export default function Home() {
               height={400} // Adjusted height for consistency
             />
 
-            <ServiceCard 
+            <ServiceCard
               src="/img/clean5.jpg" // Eco-friendly/General
               alt={t('services.eco.title')} // Assuming translation exists
               title={t('services.eco.title')} // Assuming translation exists
@@ -419,29 +437,29 @@ export default function Home() {
               width={600} // Adjusted width for consistency
               height={400} // Adjusted height for consistency
             />
-            
+
             {/* Add more ServiceCards here if needed, ensure you have relevant images */}
 
           </div>
         </div>
       </section>
-      
+
       {/* Testimonials Section */}
-      <section className="py-20 bg-gray-50">
+      <section className="py-24 bg-gradient-to-b from-white via-gray-50/30 to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('testimonials.title')} <span className="text-[#4FB3D9]">{t('testimonials.titleHighlight')}</span></h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
+              {t('testimonials.title')} <span className="text-[#4FB3D9]">{t('testimonials.titleHighlight')}</span>
+            </h2>
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
               {t('testimonials.description')}
             </p>
           </div>
-          
-          <div className="max-w-4xl mx-auto">
-            <TestimonialCarousel testimonials={testimonials} className="testimonial-carousel" />
-          </div>
+
+          <TestimonialCarousel testimonials={testimonials} className="seamless-testimonials" />
         </div>
       </section>
-      
+
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -453,7 +471,7 @@ export default function Home() {
               <p className="text-gray-600 mb-8">
                 {t('contact.description')}
               </p>
-              
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="bg-[#4FB3D9]/10 p-3 rounded-full text-[#4FB3D9]">
@@ -468,7 +486,7 @@ export default function Home() {
                     <p className="text-gray-600">{t('contact.businessHours.saturday')}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="bg-[#4FB3D9]/10 p-3 rounded-full text-[#4FB3D9]">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -481,7 +499,7 @@ export default function Home() {
                     <p className="text-gray-600">{t('contact.location.address')}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="bg-[#4FB3D9]/10 p-3 rounded-full text-[#4FB3D9]">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -496,18 +514,18 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h3 className="text-2xl font-bold mb-6 text-gray-800">{t('contact.formTitle')}</h3>
-              
+
               <form className="space-y-6" onSubmit={handleSubmit}> {/* Add onSubmit handler */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.name')}</label>
-                    <input 
-                      type="text" 
-                      id="name" 
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
+                    <input
+                      type="text"
+                      id="name"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
                       placeholder={t('contact.namePlaceholder')}
                       value={formData.name} // Add value
                       onChange={handleInputChange} // Add onChange
@@ -516,10 +534,10 @@ export default function Home() {
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.email')}</label>
-                    <input 
-                      type="email" 
-                      id="email" 
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
+                    <input
+                      type="email"
+                      id="email"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
                       placeholder={t('contact.emailPlaceholder')}
                       value={formData.email} // Add value
                       onChange={handleInputChange} // Add onChange
@@ -527,24 +545,24 @@ export default function Home() {
                     />
                   </div>
                 </div>
-                
+
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.phone')}</label>
-                  <input 
-                    type="tel" 
-                    id="phone" 
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
+                  <input
+                    type="tel"
+                    id="phone"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
                     placeholder={t('contact.phonePlaceholder')}
                     value={formData.phone} // Add value
                     onChange={handleInputChange} // Add onChange
                     // Optional: Add validation pattern if needed
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.service')}</label>
-                  <select 
-                    id="service" 
+                  <select
+                    id="service"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
                     value={formData.service} // Add value
                     onChange={handleInputChange} // Add onChange
@@ -557,22 +575,22 @@ export default function Home() {
                     <option value="specialized">{t('services.specialized.title')}</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.message')}</label>
-                  <textarea 
-                    id="message" 
-                    rows={4} 
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent" 
+                  <textarea
+                    id="message"
+                    rows={4}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
                     placeholder={t('contact.messagePlaceholder')}
                     value={formData.message} // Add value
                     onChange={handleInputChange} // Add onChange
                     required // Add required
                   ></textarea>
                 </div>
-                
-                <button 
-                  type="submit" 
+
+                <button
+                  type="submit"
                   className="w-full bg-[#4FB3D9] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a8aa8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   disabled={isSubmitting} // Disable button while submitting
                 >
@@ -591,7 +609,7 @@ export default function Home() {
           </div>
         </div>
       </section>
-      
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
@@ -617,11 +635,11 @@ export default function Home() {
                   <p className="text-sm text-gray-400">{t('footer.tagline')}</p>
                 </div>
               </div>
-              
+
               <p className="text-gray-400 mb-6">
                 {t('footer.description')}
               </p>
-              
+
               <div className="flex gap-4">
                 <a href="#" className="text-gray-400 hover:text-white transition-colors">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -642,7 +660,7 @@ export default function Home() {
                 </a>
               </div>
             </div>
-            
+
             <div>
               <h3 className="font-bold text-lg mb-4">{t('footer.quickLinks')}</h3>
               <ul className="space-y-2">
@@ -653,7 +671,7 @@ export default function Home() {
                 <li><a href="#contact" className="text-gray-400 hover:text-white transition-colors">{t('nav.contact')}</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-bold text-lg mb-4">{t('footer.services')}</h3>
               <ul className="space-y-2">
@@ -664,7 +682,7 @@ export default function Home() {
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">{t('services.maintenance.title')}</a></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-bold text-lg mb-4">{t('footer.contactInfo')}</h3>
               <ul className="space-y-4">
@@ -691,7 +709,7 @@ export default function Home() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
             <p className="text-gray-500">{t('footer.copyright')}</p>
           </div>

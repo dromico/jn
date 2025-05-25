@@ -4,36 +4,37 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    
+    const cookieStore = await cookies();
+    const supabase = createRouteHandlerClient({ cookies: () => cookieStore });
+
     // Try to directly execute SQL to add the type column if it doesn't exist
     const { error: sqlError } = await supabase.rpc('execute_sql', {
       sql_query: `
-        DO $$ 
-        BEGIN 
+        DO $$
+        BEGIN
           IF NOT EXISTS (
-            SELECT 1 
-            FROM information_schema.columns 
-            WHERE table_name = 'invoices' 
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'invoices'
             AND column_name = 'type'
           ) THEN
-            ALTER TABLE invoices 
+            ALTER TABLE invoices
             ADD COLUMN type text check (type in ('invoice', 'quotation')) default 'invoice';
           END IF;
         END $$;
       `
     });
-    
+
     if (sqlError) {
       // If direct SQL execution fails, try alternate methods
       console.error('SQL error:', sqlError);
-      
+
       // Try a simpler approach
       const { error: alterError } = await supabase
         .from('invoices')
         .update({ type: 'invoice' })
         .eq('id', '00000000-0000-0000-0000-000000000000'); // This ID likely doesn't exist, but will test if the column exists
-      
+
       // Check if the column even exists
       if (alterError && alterError.message.includes('type')) {
         // Try another mechanism
@@ -62,13 +63,13 @@ export async function GET() {
         return NextResponse.json({ error: checkError.message }, { status: 500 });
       }
 
-      return NextResponse.json({ 
-        message: 'Schema updated successfully', 
+      return NextResponse.json({
+        message: 'Schema updated successfully',
         columnExists: true,
-        sample: data 
+        sample: data
       });
     } catch (finalError) {
-      return NextResponse.json({ 
+      return NextResponse.json({
         message: 'Schema update attempted, but verification failed',
         error: finalError
       }, { status: 500 });

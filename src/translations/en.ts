@@ -113,6 +113,9 @@ export const enTranslations = {
     message: "Message",
     messagePlaceholder: "Tell us about your needs",
     submit: "Submit Request",
+    submitting: "Submitting...",
+    successMessage: "Your Enquiry Has Been Submitted",
+    errorMessage: "Failed to submit enquiry. Please try again.",
     businessHours: {
       title: "Business Hours",
       weekdays: "Monday - Friday: 8:00 AM - 6:00 PM",

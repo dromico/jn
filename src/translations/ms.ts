@@ -113,6 +113,9 @@ export const msTranslations = {
     message: "Mesej",
     messagePlaceholder: "Beritahu kami tentang keperluan anda",
     submit: "Hantar Permintaan",
+    submitting: "Menghantar...",
+    successMessage: "Pertanyaan Anda Telah Dihantar",
+    errorMessage: "Gagal menghantar pertanyaan. Sila cuba lagi.",
     businessHours: {
       title: "Waktu Perniagaan",
       weekdays: "Isnin - Jumaat: 8:00 AM - 6:00 PM",

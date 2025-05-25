@@ -7,7 +7,7 @@ import { Resend } from 'resend';
 const resendApiKey = process.env.RESEND_API_KEY || 'dummy_key_for_build';
 const resend = new Resend(resendApiKey);
 
-const TO_EMAIL = 'jvsteps@gmail.com';
+const TO_EMAIL = 'contact@jayanexus.com';
 // You should use a verified domain with Resend for the FROM_EMAIL in production
 // For testing, 'onboarding@resend.dev' might work, but check Resend's documentation.
 const FROM_EMAIL = 'onboarding@resend.dev';
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const { name, email, phone, service, message } = body;
 
     // Basic validation
-    if (!name || !email || !service || !message) {
+    if (!name || !email || !phone || !service || !message) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
         <h1>New Quote Request</h1>
         <p><strong>Name:</strong> ${name}</p>
         <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Phone:</strong> ${phone}</p>
         <p><strong>Service Interested In:</strong> ${service}</p>
         <p><strong>Message:</strong></p>
         <p>${message.replace(/\n/g, '<br>')}</p>

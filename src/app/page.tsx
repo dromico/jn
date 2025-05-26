@@ -3,6 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from 'react'; // Add useState import
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 
 import "./cleaning-styles.css";
 
@@ -17,22 +20,55 @@ import CleaningMotion from "../components/animations/CleaningMotion";
 import SparkleEffect from "../components/animations/SparkleEffect";
 import { useLanguage } from "../context/LanguageContext";
 
+// Import shadcn/ui components
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Form validation schema
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Name must be at least 2 characters.",
+  }),
+  email: z.string().email({
+    message: "Please enter a valid email address.",
+  }),
+  phone: z.string().min(10, {
+    message: "Phone number must be at least 10 characters.",
+  }),
+  service: z.string().min(1, {
+    message: "Please select a service.",
+  }),
+  message: z.string().min(10, {
+    message: "Message must be at least 10 characters.",
+  }),
+});
+
+type FormData = z.infer<typeof formSchema>;
+
 export default function Home() {
   const { t } = useLanguage();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    service: '',
-    message: '',
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'success' | 'error' | null>(null);
+
+  // Initialize form with react-hook-form and zod validation
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      service: '',
+      message: '',
+    },
+  });
 
   // Navigation items
   const navItems = [
     { label: "About Us", href: "#about" },
     { label: "Services", href: "#services" },
+    { label: "Projects", href: "/Projects" },
     { label: "Portfolio", href: "#portfolio" },
     { label: "Contact", href: "#contact" },
     { label: "Login", href: "/login", isButton: true },
@@ -131,17 +167,8 @@ export default function Home() {
     },
   ];
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [id]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  // Form submission handler
+  const onSubmit = async (values: FormData) => {
     setSubmitStatus(null);
 
     try {
@@ -150,7 +177,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
@@ -158,12 +185,10 @@ export default function Home() {
       }
 
       setSubmitStatus('success');
-      setFormData({ name: '', email: '', phone: '', service: '', message: '' }); // Clear form
+      form.reset(); // Clear form using react-hook-form reset
     } catch (error) {
       console.error('Submission error:', error);
       setSubmitStatus('error');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -518,93 +543,125 @@ export default function Home() {
             <div className="bg-white rounded-xl shadow-lg p-8">
               <h3 className="text-2xl font-bold mb-6 text-gray-800">{t('contact.formTitle')}</h3>
 
-              <form className="space-y-6" onSubmit={handleSubmit}> {/* Add onSubmit handler */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.name')}</label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
-                      placeholder={t('contact.namePlaceholder')}
-                      value={formData.name} // Add value
-                      onChange={handleInputChange} // Add onChange
-                      required // Add required
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('contact.name')}</FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder={t('contact.namePlaceholder')}
+                              className="focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('contact.email')}</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder={t('contact.emailPlaceholder')}
+                              className="focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.email')}</label>
-                    <input
-                      type="email"
-                      id="email"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
-                      placeholder={t('contact.emailPlaceholder')}
-                      value={formData.email} // Add value
-                      onChange={handleInputChange} // Add onChange
-                      required // Add required
-                    />
-                  </div>
-                </div>
 
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.phone')}</label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
-                    placeholder={t('contact.phonePlaceholder')}
-                    value={formData.phone} // Add value
-                    onChange={handleInputChange} // Add onChange
-                    // Optional: Add validation pattern if needed
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('contact.phone')}</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="tel"
+                            placeholder={t('contact.phonePlaceholder')}
+                            className="focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <div>
-                  <label htmlFor="service" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.service')}</label>
-                  <select
-                    id="service"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
-                    value={formData.service} // Add value
-                    onChange={handleInputChange} // Add onChange
-                    required // Add required
+                  <FormField
+                    control={form.control}
+                    name="service"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('contact.service')}</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent">
+                              <SelectValue placeholder={t('contact.selectService')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="commercial">{t('services.commercialbuilding.title')}</SelectItem>
+                            <SelectItem value="educational">{t('services.educational.title')}</SelectItem>
+                            <SelectItem value="healthcare">{t('services.healthcare.title')}</SelectItem>
+                            <SelectItem value="specialized">{t('services.specialized.title')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="message"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('contact.message')}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={4}
+                            placeholder={t('contact.messagePlaceholder')}
+                            className="focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button
+                    type="submit"
+                    className="w-full bg-[#4FB3D9] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a8aa8] transition-colors"
+                    disabled={form.formState.isSubmitting}
                   >
-                    <option value="">{t('contact.selectService')}</option>
-                    <option value="commercial">{t('services.commercialbuilding.title')}</option>
-                    <option value="educational">{t('services.educational.title')}</option>
-                    <option value="healthcare">{t('services.healthcare.title')}</option>
-                    <option value="specialized">{t('services.specialized.title')}</option>
-                  </select>
-                </div>
+                    {form.formState.isSubmitting ? t('contact.submitting') : t('contact.submit')}
+                  </Button>
 
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">{t('contact.message')}</label>
-                  <textarea
-                    id="message"
-                    rows={4}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4FB3D9] focus:border-transparent"
-                    placeholder={t('contact.messagePlaceholder')}
-                    value={formData.message} // Add value
-                    onChange={handleInputChange} // Add onChange
-                    required // Add required
-                  ></textarea>
-                </div>
-
-                <button
-                  type="submit"
-                  className="w-full bg-[#4FB3D9] text-white font-medium py-3 px-6 rounded-lg hover:bg-[#3a8aa8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isSubmitting} // Disable button while submitting
-                >
-                  {isSubmitting ? t('contact.submitting') : t('contact.submit')} {/* Show loading text */}
-                </button>
-
-                {/* Submission Status Messages */}
-                {submitStatus === 'success' && (
-                  <p className="text-green-600 text-center mt-4">{t('contact.successMessage')}</p>
-                )}
-                {submitStatus === 'error' && (
-                  <p className="text-red-600 text-center mt-4">{t('contact.errorMessage')}</p>
-                )}
-              </form>
+                  {/* Submission Status Messages */}
+                  {submitStatus === 'success' && (
+                    <p className="text-green-600 text-center mt-4">{t('contact.successMessage')}</p>
+                  )}
+                  {submitStatus === 'error' && (
+                    <p className="text-red-600 text-center mt-4">{t('contact.errorMessage')}</p>
+                  )}
+                </form>
+              </Form>
             </div>
           </div>
         </div>

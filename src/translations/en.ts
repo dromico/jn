@@ -123,12 +123,12 @@ export const enTranslations = {
     },
     location: {
       title: "Our Location",
-      address: "123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia"
+      address: "1-2 (level 2), Jalan Sb Indah 5/2, Taman SB Indah, 43300 Seri Kembangan, Selangor"
     },
     contactInfo: {
       title: "Contact Us",
       phone: "Phone: +60 3-2142 6789",
-      email: "Email: info@jayanexus.com.my"
+      email: "Email: contact@jayanexus.com"
     }
   },
   footer: {
@@ -137,7 +137,7 @@ export const enTranslations = {
     quickLinks: "Quick Links",
     services: "Services",
     contactInfo: "Contact Info",
-    address: "123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia",
+    address: "1-2 (level 2), Jalan Sb Indah 5/2, Taman SB Indah, 43300 Seri Kembangan, Selangor",
     copyright: "© 2025 Jaya Nexus Sdn Bhd. All rights reserved."
   },
   language: {

@@ -66,12 +66,12 @@ export default function Home() {
 
   // Navigation items
   const navItems = [
-    { label: "About Us", href: "#about" },
-    { label: "Services", href: "#services" },
-    { label: "Projects", href: "/Projects" },
-    { label: "Portfolio", href: "#portfolio" },
-    { label: "Contact", href: "#contact" },
-    { label: "Login", href: "/login", isButton: true },
+    { label: "about", href: "#about" },
+    { label: "services", href: "#services" },
+    { label: "projects", href: "/Projects" },
+    { label: "portfolio", href: "#portfolio" },
+    { label: "contact", href: "#contact" },
+    { label: "login", href: "/login", isButton: true },
   ];
 
   // Testimonials data with Malaysian names

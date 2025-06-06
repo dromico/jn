@@ -3,6 +3,7 @@ export const msTranslations = {
     home: "Laman Utama",
     about: "Tentang Kami",
     services: "Perkhidmatan",
+    projects: "Projek",
     portfolio: "Portfolio",
     contact: "Hubungi Kami",
     login: "Log Masuk"

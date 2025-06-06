@@ -96,7 +96,7 @@ export default function StickyNavbar({
                     : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'}
                 `}
               >
-                {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
+                {t(`nav.${item.label}`)}
               </Link>
             ) : (
               <Link
@@ -107,7 +107,7 @@ export default function StickyNavbar({
                   ${isScrolled ? 'text-gray-800 dark:text-gray-200' : 'text-white'}
                 `}
               >
-                {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
+                {t(`nav.${item.label}`)}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full" />
               </Link>
             )
@@ -183,7 +183,7 @@ export default function StickyNavbar({
               `}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              {t(`nav.${item.label.toLowerCase().replace(/\s+/g, '')}`)}
+              {t(`nav.${item.label}`)}
             </Link>
           ))}
         </div>

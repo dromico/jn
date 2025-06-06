@@ -3,6 +3,7 @@ export const enTranslations = {
     home: "Home",
     about: "About Us",
     services: "Services",
+    projects: "Projects",
     portfolio: "Portfolio",
     contact: "Contact",
     login: "Login"

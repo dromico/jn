@@ -4,35 +4,39 @@ import React from 'react';
 import StickyNavbar from '../../components/StickyNavbar';
 import OptimizedImage from '../../components/OptimizedImage';
 import CTAButton from '../../components/CTAButton';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function Projects() {
+  const { t } = useLanguage();
+
   // Navigation items
   const navItems = [
-    { label: "About Us", href: "/#about" },
-    { label: "Services", href: "/#services" },
-    { label: "Projects", href: "/Projects" },
-    { label: "Portfolio", href: "/#portfolio" },
-    { label: "Contact", href: "/#contact" },
-    { label: "Login", href: "/login", isButton: true },
+    { label: "about", href: "/#about" },
+    { label: "services", href: "/#services" },
+    { label: "projects", href: "/Projects" },
+    { label: "portfolio", href: "/#portfolio" },
+    { label: "contact", href: "/#contact" },
+    { label: "login", href: "/login", isButton: true },
   ];
 
   return (
     <div className="min-h-screen">
       {/* Sticky Navigation Bar */}
-      <StickyNavbar 
-        logoSrc="/img/logo.jpeg" 
-        companyName="Jaya Nexus" 
-        navItems={navItems} 
+      <StickyNavbar
+        logoSrc="/img/logo.jpeg"
+        companyName="Jaya Nexus"
+        navItems={navItems}
+        forceVisibleBackground={true}
       />
       
       {/* Hero Section */}
       <section className="relative pt-32 pb-16 bg-gray-50">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-800">
-            Our <span className="text-[#4FB3D9]">Projects</span>
+            {t('projects.title')} <span className="text-[#4FB3D9]">{t('projects.titleHighlight')}</span>
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Providing exceptional cleaning services for Malaysian schools and commercial buildings
+            {t('projects.subtitle')}
           </p>
         </div>
       </section>
@@ -232,7 +236,7 @@ export default function Projects() {
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">What Our <span className="text-[#4FB3D9]">Clients Say</span></h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('projects.testimonials.title')} <span className="text-[#4FB3D9]">{t('projects.testimonials.titleHighlight')}</span></h2>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
@@ -256,26 +260,26 @@ export default function Projects() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-gray-800">Our Cleaning <span className="text-[#4FB3D9]">Approach</span></h2>
+            <h2 className="text-3xl font-bold mb-4 text-gray-800">{t('projects.approach.title')} <span className="text-[#4FB3D9]">{t('projects.approach.titleHighlight')}</span></h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3 text-gray-800">Produk Mesra Alam</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-800">{t('projects.approach.eco.title')}</h3>
               <p className="text-gray-600">
-                We use locally-sourced, environmentally friendly cleaning products that are safe for Malaysian schools and offices.
+                {t('projects.approach.eco.description')}
               </p>
             </div>
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3 text-gray-800">Tenaga Kerja Terlatih</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-800">{t('projects.approach.trained.title')}</h3>
               <p className="text-gray-600">
-                Our cleaning staff undergoes comprehensive training on the latest Malaysian cleaning standards and safety protocols.
+                {t('projects.approach.trained.description')}
               </p>
             </div>
             <div className="bg-gray-50 p-6 rounded-xl">
-              <h3 className="text-xl font-bold mb-3 text-gray-800">Perkhidmatan Mengikut Keperluan</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-800">{t('projects.approach.customized.title')}</h3>
               <p className="text-gray-600">
-                We develop custom cleaning schedules based on each facility's specific needs and Malaysian regulations.
+                {t('projects.approach.customized.description')}
               </p>
             </div>
           </div>
@@ -285,17 +289,17 @@ export default function Projects() {
       {/* Contact CTA Section */}
       <section className="py-16 bg-[#4FB3D9]/10">
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-6 text-gray-800">Ready to Transform Your Space?</h2>
+          <h2 className="text-3xl font-bold mb-6 text-gray-800">{t('projects.cta.title')}</h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Contact us today to discuss your cleaning needs and get a customized quote for your facility.
+            {t('projects.cta.description')}
           </p>
-          <CTAButton 
-            href="/#contact" 
-            variant="primary" 
+          <CTAButton
+            href="/#contact"
+            variant="primary"
             size="lg"
             className="bg-[#4FB3D9] hover:bg-[#3a8aa8]"
           >
-            Contact Us Today
+            {t('projects.cta.button')}
           </CTAButton>
         </div>
       </section>
@@ -306,73 +310,81 @@ export default function Projects() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-6">
-                <div className="relative w-10 h-10 overflow-hidden rounded-full bg-white">
+                <div className="relative w-14 h-14 overflow-hidden rounded-lg bg-white shadow-lg border-2 border-[#4FB3D9] transform hover:scale-105 transition-all duration-300">
                   <OptimizedImage
                     src="/img/logo.jpeg"
                     alt="Jaya Nexus logo"
-                    width={40}
-                    height={40}
-                    className="object-cover"
+                    width={56}
+                    height={56}
+                    className="w-full h-full"
+                    objectFit="cover"
+                    style={{ objectPosition: 'center center' }}
+                    priority
                   />
                 </div>
-                <span className="font-bold text-lg">Jaya Nexus</span>
+                <div>
+                  <span className="font-bold text-lg flex items-center">
+                    <span className="text-[#4FB3D9] mr-1">✦</span> Jaya Nexus
+                  </span>
+                  <p className="text-sm text-gray-400">{t('footer.tagline')}</p>
+                </div>
               </div>
-              
+
               <p className="text-gray-400 mb-6">
-                Professional cleaning services for commercial buildings and educational institutions.
+                {t('footer.description')}
               </p>
             </div>
-            
+
             <div>
-              <h3 className="font-bold text-lg mb-4">Quick Links</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.quickLinks')}</h3>
               <ul className="space-y-2">
-                <li><a href="/" className="text-gray-400 hover:text-white transition-colors">Home</a></li>
-                <li><a href="/#about" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
-                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">Services</a></li>
-                <li><a href="/Projects" className="text-gray-400 hover:text-white transition-colors">Projects</a></li>
-                <li><a href="/#contact" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+                <li><a href="/" className="text-gray-400 hover:text-white transition-colors">{t('nav.home')}</a></li>
+                <li><a href="/#about" className="text-gray-400 hover:text-white transition-colors">{t('nav.about')}</a></li>
+                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">{t('nav.services')}</a></li>
+                <li><a href="/Projects" className="text-gray-400 hover:text-white transition-colors">{t('nav.projects')}</a></li>
+                <li><a href="/#contact" className="text-gray-400 hover:text-white transition-colors">{t('nav.contact')}</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h3 className="font-bold text-lg mb-4">Services</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.services')}</h3>
               <ul className="space-y-2">
-                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">Commercial Cleaning</a></li>
-                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">Educational Facilities</a></li>
-                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">Healthcare Cleaning</a></li>
-                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">Specialized Services</a></li>
+                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">{t('services.commercialbuilding.title')}</a></li>
+                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">{t('services.educational.title')}</a></li>
+                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">{t('services.healthcare.title')}</a></li>
+                <li><a href="/#services" className="text-gray-400 hover:text-white transition-colors">{t('services.specialized.title')}</a></li>
               </ul>
             </div>
-            
+
             <div>
-              <h3 className="font-bold text-lg mb-4">Contact Info</h3>
+              <h3 className="font-bold text-lg mb-4">{t('footer.contactInfo')}</h3>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M21 10C21 17 12 23 12 23C12 23 3 17 3 10C3 7.61305 3.94821 5.32387 5.63604 3.63604C7.32387 1.94821 9.61305 1 12 1C14.3869 1 16.6761 1.94821 18.364 3.63604C20.0518 5.32387 21 7.61305 21 10Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M12 13C13.6569 13 15 11.6569 15 10C15 8.34315 13.6569 7 12 7C10.3431 7 9 8.34315 9 10C9 11.6569 10.3431 13 12 13Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">123 Jalan Ampang, 50450 Kuala Lumpur, Malaysia</span>
+                  <span className="text-gray-400">{t('footer.address')}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77383 17.3147 6.72534 15.2662 5.19 12.85C3.49998 10.2412 2.44824 7.27099 2.12 4.18C2.09501 3.90347 2.12788 3.62476 2.2165 3.36162C2.30513 3.09849 2.44757 2.85669 2.63477 2.65162C2.82196 2.44655 3.04981 2.28271 3.30379 2.17052C3.55778 2.05833 3.83234 2.00026 4.11 2H7.11C7.59531 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04208 3.23945 9.11 3.72C9.23662 4.68007 9.47145 5.62273 9.81 6.53C9.94455 6.88792 9.97366 7.27691 9.89391 7.65088C9.81415 8.02485 9.62886 8.36811 9.36 8.64L8.09 9.91C9.51356 12.4135 11.5865 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9752 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0554 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">+60 3-2142 6789</span>
+                  <span className="text-gray-400">{t('contact.contactInfo.phone').replace('Phone: ', '').replace('Telefon: ', '')}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M22 6L12 13L2 6" stroke="#4FB3D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
-                  <span className="text-gray-400">info@jayanexus.com.my</span>
+                  <span className="text-gray-400">{t('contact.contactInfo.email').replace('Email: ', '').replace('E-mel: ', '')}</span>
                 </li>
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-gray-800 mt-12 pt-8 text-center">
-            <p className="text-gray-500">© 2025 Jaya Nexus Sdn Bhd. All rights reserved.</p>
+            <p className="text-gray-500">{t('footer.copyright')}</p>
           </div>
         </div>
       </footer>

@@ -145,5 +145,35 @@ export const enTranslations = {
     toggle: "Language",
     en: "English",
     ms: "Bahasa Melayu"
+  },
+  projects: {
+    title: "Our",
+    titleHighlight: "Projects",
+    subtitle: "Providing exceptional cleaning services for Malaysian schools and commercial buildings",
+    cta: {
+      title: "Ready to Transform Your Space?",
+      description: "Contact us today to discuss your cleaning needs and get a customized quote for your facility.",
+      button: "Contact Us Today"
+    },
+    testimonials: {
+      title: "What Our",
+      titleHighlight: "Clients Say"
+    },
+    approach: {
+      title: "Our Cleaning",
+      titleHighlight: "Approach",
+      eco: {
+        title: "Eco-Friendly Products",
+        description: "We use locally-sourced, environmentally friendly cleaning products that are safe for Malaysian schools and offices."
+      },
+      trained: {
+        title: "Trained Workforce",
+        description: "Our cleaning staff undergoes comprehensive training on the latest Malaysian cleaning standards and safety protocols."
+      },
+      customized: {
+        title: "Customized Services",
+        description: "We develop custom cleaning schedules based on each facility's specific needs and Malaysian regulations."
+      }
+    }
   }
 };

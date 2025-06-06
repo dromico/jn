@@ -17,16 +17,21 @@ interface StickyNavbarProps {
   logoSrc: string;
   companyName: string;
   navItems: NavItem[];
+  forceVisibleBackground?: boolean;
 }
 
 export default function StickyNavbar({
   logoSrc,
   companyName,
   navItems,
+  forceVisibleBackground = false,
 }: StickyNavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+
+  // Determine if we should show the visible background
+  const shouldShowVisibleBackground = isScrolled || forceVisibleBackground;
   
   // Handle scroll event to change navbar appearance
   useEffect(() => {
@@ -49,7 +54,7 @@ export default function StickyNavbar({
     <nav
       className={`
         fixed top-0 left-0 right-0 z-[100] transition-all duration-300
-        ${isScrolled
+        ${shouldShowVisibleBackground
           ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm shadow-md py-2'
           : 'bg-transparent py-4'}
       `}
@@ -59,7 +64,7 @@ export default function StickyNavbar({
         <Link href="/" className="flex items-center gap-3">
           <div className={`
             relative overflow-hidden rounded-lg shadow-lg transition-all duration-300
-            ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}
+            ${shouldShowVisibleBackground ? 'w-12 h-12' : 'w-16 h-16'}
             border-2 border-[#4FB3D9] transform hover:scale-105
             pulse-glow
           `}>
@@ -75,7 +80,7 @@ export default function StickyNavbar({
           </div>
           <span className={`
             font-bold text-lg transition-all duration-300
-            ${isScrolled ? 'text-primary' : 'text-white text-shadow-sm'}
+            ${shouldShowVisibleBackground ? 'text-primary' : 'text-white text-shadow-sm'}
           `}>
             <span className="text-[#4FB3D9] mr-1">✦</span>
             {companyName}
@@ -91,8 +96,8 @@ export default function StickyNavbar({
                 href={item.href}
                 className={`
                   rounded-full px-5 py-2 font-medium transition-all duration-300
-                  ${isScrolled 
-                    ? 'bg-primary text-white hover:bg-primary/90' 
+                  ${shouldShowVisibleBackground
+                    ? 'bg-primary text-white hover:bg-primary/90'
                     : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30 border border-white/30'}
                 `}
               >
@@ -104,7 +109,7 @@ export default function StickyNavbar({
                 href={item.href}
                 className={`
                   relative font-medium transition-colors duration-300 group
-                  ${isScrolled ? 'text-gray-800 dark:text-gray-200' : 'text-white'}
+                  ${shouldShowVisibleBackground ? 'text-gray-800 dark:text-gray-200' : 'text-white'}
                 `}
               >
                 {t(`nav.${item.label}`)}
@@ -114,15 +119,15 @@ export default function StickyNavbar({
           ))}
           
           {/* Language Toggle */}
-          <div className={`ml-2 ${isScrolled ? '' : 'text-white'}`}>
+          <div className={`ml-2 ${shouldShowVisibleBackground ? '' : 'text-white'}`}>
             <LanguageToggle />
           </div>
         </div>
-        
+
         {/* Mobile Menu Button and Language Toggle */}
         <div className="md:hidden flex items-center gap-3">
           {/* Language Toggle for Mobile */}
-          <div className={isScrolled ? '' : 'text-white'}>
+          <div className={shouldShowVisibleBackground ? '' : 'text-white'}>
             <LanguageToggle />
           </div>
           

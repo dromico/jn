@@ -145,5 +145,35 @@ export const msTranslations = {
     toggle: "Bahasa",
     en: "Bahasa Inggeris",
     ms: "Bahasa Melayu"
+  },
+  projects: {
+    title: "Projek",
+    titleHighlight: "Kami",
+    subtitle: "Menyediakan perkhidmatan pembersihan yang luar biasa untuk sekolah dan bangunan komersial Malaysia",
+    cta: {
+      title: "Bersedia untuk Mengubah Ruang Anda?",
+      description: "Hubungi kami hari ini untuk membincangkan keperluan pembersihan anda dan dapatkan sebut harga yang disesuaikan untuk kemudahan anda.",
+      button: "Hubungi Kami Hari Ini"
+    },
+    testimonials: {
+      title: "Apa Yang Dikatakan Oleh",
+      titleHighlight: "Pelanggan Kami"
+    },
+    approach: {
+      title: "Pendekatan",
+      titleHighlight: "Pembersihan Kami",
+      eco: {
+        title: "Produk Mesra Alam",
+        description: "Kami menggunakan produk pembersihan mesra alam tempatan yang selamat untuk sekolah dan pejabat Malaysia."
+      },
+      trained: {
+        title: "Tenaga Kerja Terlatih",
+        description: "Kakitangan pembersihan kami menjalani latihan komprehensif mengenai standard pembersihan dan protokol keselamatan Malaysia terkini."
+      },
+      customized: {
+        title: "Perkhidmatan Mengikut Keperluan",
+        description: "Kami membangunkan jadual pembersihan khusus berdasarkan keperluan khusus setiap kemudahan dan peraturan Malaysia."
+      }
+    }
   }
 };

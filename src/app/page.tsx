@@ -608,7 +608,7 @@ export default function Home() {
               </div>
 
               <div
-                className="absolute -top-6 -right-6 bg-white p-4 rounded-lg shadow-lg"
+                className="absolute -top-6 -right-6 bg-white p-4 rounded-lg shadow-lg z-10"
                 data-oid="l4x:pxk"
               >
                 <div className="flex items-center gap-3" data-oid="rd-z_c_">

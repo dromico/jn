@@ -1,33 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "../context/LanguageContext";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
   title: "Jaya Nexus Sdn Bhd | Professional Cleaning Services",
   description:
     "Professional cleaning services for schools and commercial buildings in Malaysia. Pristine results guaranteed with eco-friendly solutions.",
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-oid="-cbp28s">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        data-oid="ovy1apu"
-      >
+      <body className="antialiased" data-oid="ovy1apu">
         <LanguageProvider data-oid="zu_x61.">{children}</LanguageProvider>
       </body>
     </html>

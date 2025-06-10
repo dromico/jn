@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { Card } from '@/components/ui/card';
-import { Todo } from '@/src/app/dashboard/todos/page';
+import { useEffect, useState } from "react";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { Card } from "@/components/ui/card";
+import { Todo } from "@/src/app/dashboard/todos/page";
 
 interface TaskCalendarProps {
   todos: Todo[];
@@ -13,7 +13,11 @@ interface TaskCalendarProps {
   onEventClick: (todoId: string) => void;
 }
 
-export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskCalendarProps) {
+export default function TaskCalendar({
+  todos,
+  onDateClick,
+  onEventClick,
+}: TaskCalendarProps) {
   interface CalendarEvent {
     id: string;
     title: string;
@@ -24,7 +28,7 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
     classNames: string[];
     extendedProps: {
       description?: string | null;
-      priority: Todo['priority'];
+      priority: Todo["priority"];
     };
   }
 
@@ -38,42 +42,42 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Convert todos to calendar events
   useEffect(() => {
     const events = todos
-      .filter(todo => todo.due_date) // Only include todos with due dates
-      .map(todo => ({
+      .filter((todo) => todo.due_date) // Only include todos with due dates
+      .map((todo) => ({
         id: todo.id,
         title: todo.title,
         start: todo.due_date,
         backgroundColor: getPriorityColor(todo.priority),
         borderColor: getPriorityColor(todo.priority),
-        textColor: '#ffffff',
-        classNames: [todo.completed ? 'completed-task' : ''],
+        textColor: "#ffffff",
+        classNames: [todo.completed ? "completed-task" : ""],
         extendedProps: {
           description: todo.description,
-          priority: todo.priority
-        }
+          priority: todo.priority,
+        },
       }));
 
     setCalendarEvents(events);
   }, [todos]);
 
-  const getPriorityColor = (priority: Todo['priority']) => {
+  const getPriorityColor = (priority: Todo["priority"]) => {
     switch (priority) {
-      case 'high':
-        return '#ef4444'; // Red
-      case 'medium':
-        return '#f59e0b'; // Yellow/Amber
-      case 'low':
-        return '#10b981'; // Green
+      case "high":
+        return "#ef4444"; // Red
+      case "medium":
+        return "#f59e0b"; // Yellow/Amber
+      case "low":
+        return "#10b981"; // Green
       default:
-        return '#6b7280'; // Gray
+        return "#6b7280"; // Gray
     }
   };
 
@@ -99,8 +103,8 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
   };
 
   return (
-    <Card className="p-4">
-      <style jsx global>{`
+    <Card className="p-4" data-oid="lz1t9i0">
+      <style jsx global data-oid="9wlfqkt">{`
         .fc-day-today {
           background-color: rgba(59, 130, 246, 0.1) !important;
         }
@@ -177,9 +181,11 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
         plugins={[dayGridPlugin, interactionPlugin]}
         initialView={isMobile ? "dayGridDay" : "dayGridMonth"}
         headerToolbar={{
-          left: 'prev,next today',
-          center: 'title',
-          right: isMobile ? 'dayGridDay,dayGridWeek' : 'dayGridMonth,dayGridWeek'
+          left: "prev,next today",
+          center: "title",
+          right: isMobile
+            ? "dayGridDay,dayGridWeek"
+            : "dayGridMonth,dayGridWeek",
         }}
         events={calendarEvents}
         dateClick={handleDateClick}
@@ -190,27 +196,35 @@ export default function TaskCalendar({ todos, onDateClick, onEventClick }: TaskC
         weekends={true}
         eventDisplay={isMobile ? "block" : "auto"}
         eventTimeFormat={{
-          hour: 'numeric',
-          minute: '2-digit',
-          meridiem: 'short'
+          hour: "numeric",
+          minute: "2-digit",
+          meridiem: "short",
         }}
         eventContent={(eventInfo) => {
           const priority = eventInfo.event.extendedProps.priority;
-          const isCompleted = eventInfo.event.classNames.includes('completed-task');
+          const isCompleted =
+            eventInfo.event.classNames.includes("completed-task");
 
           return (
-            <div className={`p-1 ${isCompleted ? 'line-through opacity-70' : ''}`}>
-              <div className="text-xs font-semibold overflow-hidden text-overflow-ellipsis whitespace-nowrap">
+            <div
+              className={`p-1 ${isCompleted ? "line-through opacity-70" : ""}`}
+              data-oid="aewbbde"
+            >
+              <div
+                className="text-xs font-semibold overflow-hidden text-overflow-ellipsis whitespace-nowrap"
+                data-oid="-et7lq0"
+              >
                 {eventInfo.event.title}
               </div>
               {!isMobile && (
-                <div className="text-xs mt-1 opacity-80">
+                <div className="text-xs mt-1 opacity-80" data-oid="_ro7ma9">
                   {priority.charAt(0).toUpperCase() + priority.slice(1)}
                 </div>
               )}
             </div>
           );
         }}
+        data-oid="0n7-0yx"
       />
     </Card>
   );

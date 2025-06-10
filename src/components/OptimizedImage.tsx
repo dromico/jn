@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import Image, { ImageProps } from 'next/image';
-import { useState, useEffect, useMemo } from 'react';
+import Image, { ImageProps } from "next/image";
+import { useState, useEffect, useMemo } from "react";
 
-interface OptimizedImageProps extends Omit<ImageProps, 'onLoad'> {
+interface OptimizedImageProps extends Omit<ImageProps, "onLoad"> {
   src: string;
   alt: string;
   width: number;
@@ -11,12 +11,12 @@ interface OptimizedImageProps extends Omit<ImageProps, 'onLoad'> {
   sizes?: string;
   quality?: number;
   priority?: boolean;
-  placeholder?: 'blur' | 'empty';
+  placeholder?: "blur" | "empty";
   blurDataURL?: string;
   lazyBoundary?: string;
   className?: string;
   style?: React.CSSProperties;
-  objectFit?: 'cover' | 'contain' | 'fill';
+  objectFit?: "cover" | "contain" | "fill";
 }
 
 export default function OptimizedImage({
@@ -24,14 +24,14 @@ export default function OptimizedImage({
   alt,
   width,
   height,
-  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  sizes = "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
   quality = 90,
   priority = false,
-  placeholder = 'empty',
+  placeholder = "empty",
   blurDataURL,
-  lazyBoundary = '200px',
+  lazyBoundary = "200px",
   className,
-  objectFit = 'cover',
+  objectFit = "cover",
   style,
   ...props
 }: OptimizedImageProps) {
@@ -45,8 +45,9 @@ export default function OptimizedImage({
     // Check WebP support
     const checkWebpSupport = async () => {
       try {
-        const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
-        const blob = await fetch(webpData).then(r => r.blob());
+        const webpData =
+          "data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=";
+        const blob = await fetch(webpData).then((r) => r.blob());
         setSupportsWebp(blob.size > 0);
       } catch (e) {
         setSupportsWebp(false);
@@ -56,8 +57,9 @@ export default function OptimizedImage({
     // Check AVIF support
     const checkAvifSupport = async () => {
       try {
-        const avifData = 'data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=';
-        const blob = await fetch(avifData).then(r => r.blob());
+        const avifData =
+          "data:image/avif;base64,AAAAIGZ0eXBhdmlmAAAAAGF2aWZtaWYxbWlhZk1BMUIAAADybWV0YQAAAAAAAAAoaGRscgAAAAAAAAAAcGljdAAAAAAAAAAAAAAAAGxpYmF2aWYAAAAADnBpdG0AAAAAAAEAAAAeaWxvYwAAAABEAAABAAEAAAABAAABGgAAAB0AAAAoaWluZgAAAAAAAQAAABppbmZlAgAAAAABAABhdjAxQ29sb3IAAAAAamlwcnAAAABLaXBjbwAAABRpc3BlAAAAAAAAAAIAAAACAAAAEHBpeGkAAAAAAwgICAAAAAxhdjFDgQ0MAAAAABNjb2xybmNseAACAAIAAYAAAAAXaXBtYQAAAAAAAAABAAEEAQKDBAAAACVtZGF0EgAKCBgANogQEAwgMg8f8D///8WfhwB8+ErK42A=";
+        const blob = await fetch(avifData).then((r) => r.blob());
         setSupportsAvif(blob.size > 0);
       } catch (e) {
         setSupportsAvif(false);
@@ -76,27 +78,27 @@ export default function OptimizedImage({
     }
 
     // If it's not a local image or it's the logo, use the original source
-    if (src.includes('logo')) {
+    if (src.includes("logo")) {
       return src;
     }
 
     // Extract the base filename
     let fileName;
-    if (src.startsWith('/img/')) {
-      const basePath = src.replace('/img/', '');
-      fileName = basePath.split('.')[0];
+    if (src.startsWith("/img/")) {
+      const basePath = src.replace("/img/", "");
+      fileName = basePath.split(".")[0];
     } else {
       // For other paths, just get the filename
-      const basePath = src.split('/').pop() || '';
-      fileName = basePath.split('.')[0];
+      const basePath = src.split("/").pop() || "";
+      fileName = basePath.split(".")[0];
     }
 
     // Determine the best format based on browser support
-    let format = 'jpg';
+    let format = "jpg";
     if (supportsAvif) {
-      format = 'avif';
+      format = "avif";
     } else if (supportsWebp) {
-      format = 'webp';
+      format = "webp";
     }
 
     // Use a more conservative size selection to ensure files exist
@@ -104,7 +106,7 @@ export default function OptimizedImage({
     // For other images, use appropriate sizes
     let size = 320; // Default to smallest size
 
-    if (fileName === 'clean10') {
+    if (fileName === "clean10") {
       // clean10 is only 480px wide, so only 320px version exists
       size = 320;
     } else {
@@ -119,32 +121,33 @@ export default function OptimizedImage({
 
   // Generate blur placeholder URL
   const placeholderUrl = useMemo(() => {
-    if (src.includes('logo')) {
+    if (src.includes("logo")) {
       return undefined;
     }
 
     let fileName;
-    if (src.startsWith('/img/')) {
-      const basePath = src.replace('/img/', '');
-      fileName = basePath.split('.')[0];
+    if (src.startsWith("/img/")) {
+      const basePath = src.replace("/img/", "");
+      fileName = basePath.split(".")[0];
     } else {
-      const basePath = src.split('/').pop() || '';
-      fileName = basePath.split('.')[0];
+      const basePath = src.split("/").pop() || "";
+      fileName = basePath.split(".")[0];
     }
     return `/optimized-img/${fileName}-placeholder.jpg`;
   }, [src]);
 
   return (
     <div
-      className={`relative overflow-hidden w-full h-full ${className || ''}`}
+      className={`relative overflow-hidden w-full h-full ${className || ""}`}
       style={style}
+      data-oid="l937wfe"
     >
       <Image
         src={getOptimizedSrc} // Use optimized src when available
         alt={alt}
         width={width}
         height={height}
-        loading={priority ? 'eager' : 'lazy'}
+        loading={priority ? "eager" : "lazy"}
         onLoad={() => setIsLoaded(true)}
         onError={() => {
           setHasError(true);
@@ -153,13 +156,13 @@ export default function OptimizedImage({
         className={`
           transition-opacity duration-500
           w-full h-full
-          ${isLoaded ? 'opacity-100' : 'opacity-0'}
+          ${isLoaded ? "opacity-100" : "opacity-0"}
         `}
         style={{
           objectFit,
           zIndex: 2,
-          objectPosition: 'center',
-          position: 'relative'
+          objectPosition: "center",
+          position: "relative",
         }}
         sizes={sizes}
         quality={quality}
@@ -167,6 +170,7 @@ export default function OptimizedImage({
         placeholder={placeholder}
         blurDataURL={blurDataURL || placeholderUrl}
         {...props}
+        data-oid="f-jjegv"
       />
     </div>
   );

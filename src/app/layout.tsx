@@ -15,22 +15,20 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Jaya Nexus Sdn Bhd | Professional Cleaning Services",
-  description: "Professional cleaning services for schools and commercial buildings in Malaysia. Pristine results guaranteed with eco-friendly solutions.",
+  description:
+    "Professional cleaning services for schools and commercial buildings in Malaysia. Pristine results guaranteed with eco-friendly solutions.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-oid="-cbp28s">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        data-oid="ovy1apu"
       >
-        <LanguageProvider>
-          {children}
-        </LanguageProvider>
+        <LanguageProvider data-oid="zu_x61.">{children}</LanguageProvider>
       </body>
     </html>
   );

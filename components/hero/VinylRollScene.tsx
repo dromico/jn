@@ -11,17 +11,18 @@
  */
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { ContactShadows, Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
+import { Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
-import { buildFloorAtlasAsync, paintConcrete, type FloorAtlas } from "./textures";
+import { buildFloorAtlasAsync, concretePhoto, loadImage, paintConcrete, type FloorAtlas } from "./textures";
 
 // World units are roughly metres, with the thickness exaggerated so you can see it.
 const SHEET_LENGTH = 6;
 const SHEET_WIDTH = 3;
-const THICKNESS = 0.028;
+const THICKNESS = 0.02;
 const CORE_RADIUS = 0.085;
 const X0 = -SHEET_LENGTH / 2;
 const ZONES = 6;
+const SLAB_SIZE = 60;
 
 export interface SceneProps {
   /** 0..1 scroll progress, written by the parent; read every frame. */
@@ -185,8 +186,8 @@ function useSheetMaterials(quality: "high" | "low") {
   // Paint the six floors off the critical path, one at a time.
   useEffect(() => {
     const signal = { cancelled: false };
-    const ppu = quality === "high" ? 256 : 150;
-    buildFloorAtlasAsync(ppu * (SHEET_LENGTH / ZONES), ppu * SHEET_WIDTH, ppu / 300, signal).then((a) => a && setAtlas(a));
+    const ppu = quality === "high" ? 384 : 170;
+    buildFloorAtlasAsync(ppu, SHEET_LENGTH / ZONES, SHEET_WIDTH, signal).then((a) => a && setAtlas(a));
     return () => {
       signal.cancelled = true;
     };
@@ -209,13 +210,13 @@ function useSheetMaterials(quality: "high" | "low") {
     const face = new THREE.MeshPhysicalMaterial({
       map,
       normalMap,
-      normalScale: new THREE.Vector2(0.55, 0.55),
+      normalScale: new THREE.Vector2(0.6, 0.6),
       roughness: 1,
       roughnessMap: surface,
       clearcoat: 1,
       clearcoatMap: surface,
-      clearcoatRoughness: 0.22,
-      envMapIntensity: 0.55,
+      clearcoatRoughness: 0.32,
+      envMapIntensity: 0.7,
       side: THREE.FrontSide,
     });
 
@@ -244,8 +245,9 @@ function useSheetMaterials(quality: "high" | "low") {
 }
 
 function useConcrete(quality: "high" | "low") {
-  return useMemo(() => {
-    const size = quality === "high" ? 1024 : 512;
+  // Procedural slab first, swapped for the photo texture once it has loaded.
+  const fallback = useMemo(() => {
+    const size = quality === "high" ? 512 : 256;
     const c = document.createElement("canvas");
     c.width = c.height = size;
     paintConcrete(c.getContext("2d", { willReadFrequently: true })!, { x: 0, y: 0, w: size, h: size }, size / 512);
@@ -253,9 +255,58 @@ function useConcrete(quality: "high" | "low") {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
     tex.repeat.set(8, 8);
-    tex.anisotropy = 4;
     return tex;
   }, [quality]);
+  const [photo, setPhoto] = useState<THREE.Texture | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let tex: THREE.Texture | null = null;
+    loadImage(concretePhoto).then((img) => {
+      if (!img || cancelled) return;
+      tex = new THREE.Texture(img);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      // Mirrored repeat hides the tile edges without needing a seamless photo.
+      tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
+      tex.repeat.set(SLAB_SIZE / 2.4, SLAB_SIZE / 2.4);
+      tex.anisotropy = 8;
+      tex.needsUpdate = true;
+      setPhoto(tex);
+    });
+    return () => {
+      cancelled = true;
+      tex?.dispose();
+    };
+  }, []);
+
+  useEffect(() => () => fallback.dispose(), [fallback]);
+  return photo ?? fallback;
+}
+
+/** Soft dark gradient used as the contact shadow where the roll meets the floor. */
+function useContactTexture() {
+  return useMemo(() => {
+    const c = document.createElement("canvas");
+    c.width = 128;
+    c.height = 128;
+    const ctx = c.getContext("2d")!;
+    // Greyscale alpha map: white is full shadow.
+    const g = ctx.createLinearGradient(0, 0, 128, 0);
+    const stops: [number, number][] = [[0, 0], [0.28, 30], [0.44, 120], [0.5, 215], [0.56, 120], [0.72, 30], [1, 0]];
+    for (const [at, v] of stops) g.addColorStop(at, `rgb(${v},${v},${v})`);
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 128, 128);
+    // Fade to nothing just past each end of the roll.
+    const m = ctx.createLinearGradient(0, 0, 0, 128);
+    m.addColorStop(0, "rgba(0,0,0,1)");
+    m.addColorStop(0.1, "rgba(0,0,0,0)");
+    m.addColorStop(0.9, "rgba(0,0,0,0)");
+    m.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.fillStyle = m;
+    ctx.fillRect(0, 0, 128, 128);
+    const tex = new THREE.CanvasTexture(c);
+    return tex;
+  }, []);
 }
 
 function useGlowTexture() {
@@ -298,6 +349,25 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
   const mats = useSheetMaterials(quality);
   const concrete = useConcrete(quality);
   const glowTex = useGlowTexture();
+  const contactTex = useContactTexture();
+  // Phones get a smaller shadow map rather than none, so the 3D scene matches the still it replaces.
+  const shadows = true;
+  const shadowSize = quality === "high" ? 2048 : 1024;
+
+  // The contact shadow is a soft strip on the slab under the roll, plus a
+  // half strip lying on top of the laid sheet behind it (the slab strip is
+  // hidden under the sheet there).
+  const contactGeo = useMemo(() => {
+    const LEN = SHEET_WIDTH + 0.5;
+    const front = new THREE.PlaneGeometry(2, LEN).rotateX(-Math.PI / 2);
+    const behind = new THREE.PlaneGeometry(1, SHEET_WIDTH).rotateX(-Math.PI / 2).translate(-0.5, 0, 0);
+    const uv = behind.attributes.uv as THREE.BufferAttribute;
+    const pad = 0.25 / LEN;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.5, pad + uv.getY(i) * (1 - pad * 2));
+    return { behind, front };
+  }, []);
+  const contactMat = useMemo(() => new THREE.MeshBasicMaterial({ color: "#1C2623", alphaMap: contactTex, transparent: true, depthWrite: false, toneMapped: false, opacity: 0.8, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }), [contactTex]);
+  const contact = useRef<THREE.Group>(null);
 
   const sheet = useRef<THREE.Mesh>(null);
   const core = useRef<THREE.Group>(null);
@@ -323,17 +393,19 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
   }, []);
 
   const state = useRef({ p: -1, mx: 0, my: 0, sheen: 0, sheenTarget: 0, zone: -1, ready: false });
-  const tmp = useMemo(() => ({ target: new THREE.Vector3(), pos: new THREE.Vector3(), top: new THREE.Vector3(), offset: new THREE.Vector3(), sph: new THREE.Spherical() }), []);
+  const tmp = useMemo(() => ({ target: new THREE.Vector3(), pos: new THREE.Vector3(), top: new THREE.Vector3(), offset: new THREE.Vector3(), sph: new THREE.Spherical(), origin: new THREE.Vector3() }), []);
   const camera = useThree((s) => s.camera as THREE.PerspectiveCamera);
   const size = useThree((s) => s.size);
 
   useEffect(() => () => {
     geometry.dispose();
-    concrete.dispose();
     glowTex.dispose();
     weldMats.forEach((m) => Object.values(m).forEach((x) => x.dispose()));
     Object.values(weldGeo).forEach((g) => g.dispose());
-  }, [geometry, concrete, glowTex, weldMats, weldGeo]);
+    Object.values(contactGeo).forEach((g) => g.dispose());
+    contactMat.dispose();
+    contactTex.dispose();
+  }, [geometry, glowTex, weldMats, weldGeo, contactGeo, contactMat, contactTex]);
   useEffect(() => () => mats?.dispose(), [mats]);
 
   useFrame((_, dt) => {
@@ -357,6 +429,14 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
       core.current.position.set(X0 + s + off, rOuter, 0);
       core.current.rotation.z = -(s + off) / CORE_RADIUS;
       core.current.visible = off < 4.9;
+      if (contact.current) {
+        contact.current.position.x = core.current.position.x;
+        contact.current.scale.x = rOuter * 2.4;
+        contactMat.opacity = (shadows ? 0.7 : 0.85) * (1 - smooth(0.9, 0.98, p));
+        contact.current.visible = core.current.visible;
+        // Once the sheet is fully laid, the core rolls on over bare slab.
+        contact.current.children[0].position.y = off > 0.05 ? 0.0015 : THICKNESS + 0.0015;
+      }
     }
 
     // --- Welds: each seam is welded just after the roll passes it.
@@ -386,14 +466,22 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
       onZone?.(zone);
     }
 
-    // --- Camera: follow the roll in three-quarter view, then rise to top-down.
+    // --- Camera: a low product shot looking along the roll's end, the laid
+    // floor running away to the left. It pulls back and rises as the floor
+    // grows, then lifts to top-down.
     const aspect = size.width / Math.max(1, size.height);
-    const follow = smooth(0, 0.76, p);
-    tmp.target.set(X0 + 0.55 + s * 0.72, 0.12 * (1 - follow), 0.1);
+    const f = s / SHEET_LENGTH;
+    const follow = f * f * (3 - 2 * f);
+    const rollX = X0 + s;
+    tmp.target.set(
+      THREE.MathUtils.lerp(rollX - 0.25, rollX - SHEET_LENGTH * 0.36, follow),
+      THREE.MathUtils.lerp(0.2, 0, follow),
+      THREE.MathUtils.lerp(0.55, 0.1, follow),
+    );
     tmp.offset.set(
-      THREE.MathUtils.lerp(-2.1, -2.0, follow),
-      THREE.MathUtils.lerp(2.0, 2.9, follow),
-      THREE.MathUtils.lerp(5.0, 5.8, follow),
+      THREE.MathUtils.lerp(2.3, 3.4, follow),
+      THREE.MathUtils.lerp(1.05, 3.5, follow),
+      THREE.MathUtils.lerp(4.3, 6.6, follow),
     );
     // Narrow viewports need to step back to keep the roll in frame.
     const back = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.9 : 1;
@@ -413,13 +501,14 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
     tmp.top.set(st.mx * 0.08, height, 0.001 + st.my * 0.06);
     const b = easeInOut(smooth(0.76, 0.98, p));
     tmp.pos.lerp(tmp.top, b);
-    tmp.target.lerp(new THREE.Vector3(0, 0, 0), b);
+    tmp.target.lerp(tmp.origin, b);
     camera.position.copy(tmp.pos);
     camera.lookAt(tmp.target);
 
     // --- Key light follows the cursor so the sheen moves across the vinyl.
     if (key.current) {
-      key.current.position.set(tmp.target.x + st.mx * 4, 6, tmp.target.z + 3 - st.my * 3);
+      // Upper left of frame, like a large softbox; the cursor nudges it.
+      key.current.position.set(tmp.target.x - 3.2 + st.mx * 2.2, 6.5, tmp.target.z + 3.6 - st.my * 1.6);
       key.current.target.position.copy(tmp.target);
       key.current.target.updateMatrixWorld();
     }
@@ -445,33 +534,54 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
   return (
     <>
       <color attach="background" args={["#EEF0EE"]} />
-      <fog attach="fog" args={["#EEF0EE", 10, 26]} />
-      <hemisphereLight args={["#F4F7F5", "#B8BDB9", 0.4]} />
-      <directionalLight ref={key} intensity={1.9} color="#FFF8EE" />
+      <fog attach="fog" args={["#EEF0EE", 9, 24]} />
+      <hemisphereLight args={["#F6F8F6", "#C6CBC7", 0.22]} />
+      <directionalLight
+        ref={key}
+        intensity={1.7}
+        color="#FFF6EA"
+        castShadow={shadows}
+        shadow-mapSize={[shadowSize, shadowSize]}
+        shadow-radius={7}
+        shadow-blurSamples={12}
+        shadow-bias={-0.0004}
+        shadow-normalBias={0.03}
+      >
+        <orthographicCamera attach="shadow-camera" args={[-5.5, 5.5, 4.5, -4.5, 0.5, 22]} />
+      </directionalLight>
       <pointLight ref={sheen} intensity={0} distance={2.2} decay={2} color="#FFFFFF" />
 
       <Environment resolution={quality === "high" ? 256 : 64} frames={1}>
-        {/* A soft studio, built in place so there is no HDRI download. */}
-        <Lightformer form="rect" intensity={1.3} color="#FFFFFF" position={[0, 6, 1]} rotation-x={Math.PI / 2} scale={[12, 6, 1]} />
-        <Lightformer form="rect" intensity={1.1} color="#F3F6F4" position={[-6, 2.5, 3]} rotation-y={Math.PI / 2.5} scale={[6, 3, 1]} />
-        <Lightformer form="rect" intensity={0.8} color="#EAF1EE" position={[6, 2, -2]} rotation-y={-Math.PI / 2} scale={[6, 3, 1]} />
-        <Lightformer form="ring" intensity={1.4} color="#FFFFFF" position={[2, 3, 6]} scale={2.5} />
+        {/* A photo studio built in place (no HDRI download): one big softbox
+            upper left, a weak fill, and a dark flag on the right so the roll
+            keeps a gradient across its curve. */}
+        <Lightformer form="rect" intensity={1.5} color="#FFFFFF" position={[-5, 6, 4]} rotation={[-Math.PI / 2.6, -0.5, 0]} scale={[9, 7, 1]} />
+        <Lightformer form="rect" intensity={0.6} color="#F3F6F4" position={[0, 7, -4]} rotation-x={Math.PI / 2} scale={[14, 6, 1]} />
+        <Lightformer form="rect" intensity={0.5} color="#EEF3F0" position={[2, 2.5, 8]} rotation-y={Math.PI} scale={[8, 3, 1]} />
+        <Lightformer form="rect" intensity={1} color="#3A423F" position={[8, 2, 0]} rotation-y={-Math.PI / 2} scale={[8, 5, 1]} />
         <mesh scale={30}>
           <sphereGeometry args={[1, 16, 8]} />
-          <meshBasicMaterial color="#D9DDDA" side={THREE.BackSide} />
+          <meshBasicMaterial color="#AEB3AF" side={THREE.BackSide} />
         </mesh>
       </Environment>
 
       {/* Concrete slab */}
       <mesh rotation-x={-Math.PI / 2} position={[0, -0.0005, 0]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial map={concrete} color="#E4E7E4" roughness={0.92} envMapIntensity={0.5} />
+        <planeGeometry args={[SLAB_SIZE, SLAB_SIZE]} />
+        <meshStandardMaterial map={concrete} color="#FFFFFF" roughness={0.94} envMapIntensity={0.75} />
       </mesh>
 
-      {mats && <mesh ref={sheet} geometry={geometry} material={[mats.face, mats.edge]} frustumCulled={false} onPointerMove={onMove} onPointerOut={onOut} />}
+      <group ref={contact}>
+        <mesh geometry={contactGeo.behind} material={contactMat} position={[0, THICKNESS + 0.0015, 0]} renderOrder={2} />
+        <mesh geometry={contactGeo.front} material={contactMat} position={[0, 0.0015, 0]} renderOrder={2} />
+      </group>
+
+      {mats && (
+        <mesh ref={sheet} geometry={geometry} material={[mats.face, mats.edge]} frustumCulled={false} castShadow={shadows} receiveShadow onPointerMove={onMove} onPointerOut={onOut} />
+      )}
 
       <group ref={core}>
-        <mesh rotation-x={Math.PI / 2}>
+        <mesh rotation-x={Math.PI / 2} castShadow={shadows}>
           <cylinderGeometry args={[CORE_RADIUS - 0.004, CORE_RADIUS - 0.004, SHEET_WIDTH + 0.04, 32, 1, true]} />
           <meshStandardMaterial color="#B79A73" roughness={0.85} side={THREE.DoubleSide} />
         </mesh>
@@ -489,9 +599,6 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
         );
       })}
 
-      {quality === "high" && (
-        <ContactShadows position={[0, 0.0008, 0]} scale={16} resolution={512} far={1.2} blur={2.2} opacity={0.42} frames={Infinity} color="#23312D" />
-      )}
     </>
   );
 }
@@ -503,11 +610,13 @@ export default function VinylRollScene(props: SceneProps) {
     <Canvas
       frameloop={active ? "always" : "never"}
       dpr={dprRef.current}
-      camera={{ fov: 30, near: 0.05, far: 60, position: [-4, 1.5, 3.5] }}
+      shadows={{ type: THREE.VSMShadowMap }}
+      camera={{ fov: 26, near: 0.05, far: 60, position: [1, 1.2, 5] }}
       gl={{ antialias: true, powerPreference: "high-performance", preserveDrawingBuffer: false }}
       onCreated={({ gl }) => {
-        gl.toneMapping = THREE.ACESFilmicToneMapping;
-        gl.toneMappingExposure = 0.86;
+        // Neutral keeps the floor colours true where ACES would grey them.
+        gl.toneMapping = THREE.NeutralToneMapping;
+        gl.toneMappingExposure = 1;
       }}
       aria-hidden="true"
     >

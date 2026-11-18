@@ -42,23 +42,25 @@ Paths are set in `content/equipment.ts`.
 | `public/images/clients/*.svg` | SVG or PNG, transparent | Client logos for the marquee. List them in `content/clients.ts` (and get permission first) |
 | About page: crew photo | 4:3, ≥ 1600 px | Our crew on site. Slot is in `app/[locale]/about/page.tsx` (`Photo src={null}`): set `src` to e.g. `/images/team/crew.jpg` |
 | About page: team members | 4:5 | Supervisors and installers. Same file, "The team" section |
-| `public/images/hero-poster.png` | 1050 × 960 | Reduced-motion and no-WebGL version of the hero. It's a render of the hero's last frame; regenerate it if the hero changes |
+| `public/images/hero-poster.png`, `hero-start.png` | 1050 × 960 | Stills of the hero's last and first frames (reduced motion / first paint on phones). Regenerate them if the hero changes |
 
 ## Hero and swatch textures
 
-The six floor textures (hero roll, sample board, mega menu, service heroes) are **procedural**: drawn in code in `components/hero/textures.ts`. No image files are needed.
-The hero turns each texture's height layer into a normal map, and gives each floor its own roughness and clearcoat (glossy vinyl wear layer, matte rubber and carpet).
+**Hero roll and slab: photo textures.** The hero uses six 1024 px tiles in `public/textures/`, generated with Google's Nano Banana 2.1 image model (through OpenRouter) on 18 Nov 2026. They are AI-generated, so there is no third-party licence to credit.
 
-The brief asked for CC0 maps from ambientCG. The build sandbox could not reach ambientCG, so none are bundled. If you'd like to use them (or photos of your own floors) later:
+| File | Floor | Covers | Notes |
+|---|---|---|---|
+| `public/textures/homogeneous.webp` | Homogeneous vinyl | 0.9 m | |
+| `public/textures/lvt.webp` | Vinyl tiles (LVT) | 1.15 m | Planks run top to bottom (across the roll) |
+| `public/textures/sports.webp` | Sports | 1.1 m | Strips run top to bottom. Court lines are drawn on top in code |
+| `public/textures/gym.webp` | Gym rubber | 0.7 m | |
+| `public/textures/esd.webp` | Anti-static | 1.0 m | The copper grid is drawn on top in code |
+| `public/textures/concrete.webp` | Slab under the roll | 2.4 m | |
 
-| Floor | Suggested ambientCG material (CC0) |
-|---|---|
-| Homogeneous vinyl | `Plastic` / `Terrazzo` speckle sets |
-| Vinyl tiles (LVT) | `WoodFloor` sets |
-| Sports | `WoodFloor` (maple/beech) |
-| Gym | `Rubber` sets |
-| ESD | `Plastic` (light grey) |
-| Carpet | `Carpet` / `Fabric` sets |
-| Concrete slab | `Concrete` sets |
+Carpet stays procedural: the image model's filter refused every carpet prompt.
 
-Download the 1K JPG versions into `public/textures/<floor>/` (color, normal, roughness), and replace the matching painter in `textures.ts` with an image draw into the same rectangle. Credit isn't required for CC0, but note the source here.
+**To use photos of your own floors:** shoot straight down in even light, crop square, save as 1024 × 1024 WebP over the file above. Tiles are mirrored when repeated, so they don't need to be seamless. The size each tile covers and its bump strength are set in `floorPhotos` in `components/hero/textures.ts`. The hero derives the normal map from the photo's brightness. If a file is missing, that floor falls back to its procedural texture.
+
+After changing a texture, regenerate the two stills (`public/images/hero-start.png` for the first paint on phones, `public/images/hero-poster.png` for reduced motion) by screenshotting the canvas at `/en?hero=0` and `/en?hero=1`.
+
+**Sample board, mega menu and service heroes: procedural.** These are still drawn in code by the painters in `components/hero/textures.ts`, with no image files.

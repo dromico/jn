@@ -53,10 +53,13 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
         return undefined;
       }
       const nav = navigator as Navigator & { deviceMemory?: number };
+      // ?hero=0.5 (QA and screenshots) always gets the full-quality scene straight away.
+      const qa = new URLSearchParams(window.location.search).has("hero");
       const low =
-        window.matchMedia("(max-width: 767px), (pointer: coarse)").matches ||
+        !qa &&
+        (window.matchMedia("(max-width: 767px), (pointer: coarse)").matches ||
         (navigator.hardwareConcurrency ?? 8) <= 4 ||
-        (nav.deviceMemory ?? 8) <= 4;
+        (nav.deviceMemory ?? 8) <= 4);
       setQuality(low ? "low" : "high");
       const start = () => {
         cleanup();
@@ -142,7 +145,9 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
                     active={active}
                     onZone={setZone}
                     onReady={() => setReady(true)}
-                    onDecline={() => setQuality("low")}
+                    onDecline={() => {
+                      if (!new URLSearchParams(window.location.search).has("hero")) setQuality("low");
+                    }}
                   />
                 </div>
               )}
@@ -163,7 +168,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
               )}
             </div>
 
-            <div className="absolute right-3 top-3 rounded-md border border-hairline bg-white px-3 py-2 text-[12px] leading-[1.5] sm:right-4 sm:top-4 sm:px-4 sm:py-3 sm:text-[14px]" aria-live="polite">
+            <div className="absolute right-3 top-3 z-[2] rounded-md border border-hairline bg-white px-3 py-2 text-[12px] leading-[1.5] sm:right-4 sm:top-4 sm:px-4 sm:py-3 sm:text-[14px]" aria-live="polite">
               <p className="font-semibold">{card.name}</p>
               <p className="text-stone">{card.spec}</p>
               {!laid && <p className="mt-1 text-stone">{tc("ofTotal", { n: zone + 1, total: floors.length })}</p>}

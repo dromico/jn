@@ -503,11 +503,121 @@ export function buildFloorAtlas(zoneW: number, zoneH: number, scale: number): Fl
   return { color, normal, surface, zones };
 }
 
-/** Same as buildFloorAtlas, but yields to the browser between floors so the page stays responsive. */
-export async function buildFloorAtlasAsync(zoneW: number, zoneH: number, scale: number, signal?: { cancelled: boolean }): Promise<FloorAtlas | null> {
+// ---------------------------------------------------------------------------
+// Photo textures for the hero (public/textures/*.webp, see ASSETS.md).
+// If a file fails to load, that floor falls back to its procedural painter.
+
+interface PhotoSpec {
+  src: string;
+  /** How many metres of floor one tile of the photo covers. */
+  metres: number;
+  /** Bump strength when the photo's brightness is used as a height map. */
+  bump: number;
+}
+
+export const floorPhotos: Partial<Record<FloorKind, PhotoSpec>> = {
+  "homogeneous-vinyl": { src: "/textures/homogeneous.webp", metres: 0.9, bump: 0.35 },
+  "vinyl-tiles-lvt": { src: "/textures/lvt.webp", metres: 1.15, bump: 1.5 },
+  "sports-flooring": { src: "/textures/sports.webp", metres: 1.1, bump: 0.7 },
+  "gym-flooring": { src: "/textures/gym.webp", metres: 0.7, bump: 2.6 },
+  "anti-static-esd": { src: "/textures/esd.webp", metres: 1.0, bump: 0.25 },
+};
+
+export const concretePhoto = "/textures/concrete.webp";
+
+export function loadImage(src: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+/** Tile an image across a rectangle, mirroring every other tile so the edges never show a seam. */
+function mirrorTile(ctx: Ctx, img: CanvasImageSource, r: Rect, tile: number) {
+  clip(ctx, r, () => {
+    for (let j = 0, y = r.y; y < r.y + r.h; y += tile, j++) {
+      for (let i = 0, x = r.x; x < r.x + r.w; x += tile, i++) {
+        const fx = i % 2 === 1;
+        const fy = j % 2 === 1;
+        ctx.save();
+        ctx.translate(x + (fx ? tile : 0), y + (fy ? tile : 0));
+        ctx.scale(fx ? -1 : 1, fy ? -1 : 1);
+        ctx.drawImage(img, 0, 0, tile + 0.5, tile + 0.5);
+        ctx.restore();
+      }
+    }
+  });
+}
+
+/** Brightness of a region as a grey height canvas. */
+function lumaCanvas(source: HTMLCanvasElement, r: Rect) {
+  const out = makeCanvas(r.w, r.h);
+  const octx = out.getContext("2d")!;
+  octx.drawImage(source, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+  const img = octx.getImageData(0, 0, out.width, out.height);
+  const d = img.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const l = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
+    d[i] = d[i + 1] = d[i + 2] = l;
+  }
+  octx.putImageData(img, 0, 0);
+  return out;
+}
+
+/** Court markings over the sports floor. */
+function courtLines(c: Ctx, r: Rect, s: number) {
+  clip(c, r, () => {
+    const m = Math.min(r.w, r.h);
+    const inset = m * 0.16;
+    c.lineWidth = 3.2 * s;
+    c.strokeStyle = "#F4F3EE";
+    c.strokeRect(r.x + inset, r.y + inset, r.w - inset * 2, r.h - inset * 2);
+    c.beginPath();
+    c.moveTo(r.x + r.w / 2, r.y + inset);
+    c.lineTo(r.x + r.w / 2, r.y + r.h - inset);
+    c.stroke();
+    c.strokeStyle = "#2E6E60";
+    c.beginPath();
+    c.arc(r.x + r.w / 2, r.y + r.h / 2, m * 0.15, 0, Math.PI * 2);
+    c.stroke();
+  });
+}
+
+/** Faint copper earthing grid showing through the ESD floor. */
+function copperGrid(c: Ctx, r: Rect, s: number) {
+  clip(c, r, () => {
+    const g = 64 * s;
+    c.strokeStyle = "rgba(186,118,66,0.5)";
+    c.lineWidth = 1.3 * s;
+    c.beginPath();
+    for (let x = r.x + g / 2; x < r.x + r.w; x += g) {
+      c.moveTo(x, r.y);
+      c.lineTo(x, r.y + r.h);
+    }
+    for (let y = r.y + g / 2; y < r.y + r.h; y += g) {
+      c.moveTo(r.x, y);
+      c.lineTo(r.x + r.w, y);
+    }
+    c.stroke();
+  });
+}
+
+/**
+ * The hero's sheet: six floors end to end. Uses the photo textures where they
+ * load and the procedural painters otherwise. Yields to the browser between
+ * floors so the page stays responsive.
+ *
+ * `ppu` is pixels per metre; a zone is `zoneM` metres long and `widthM` wide.
+ */
+export async function buildFloorAtlasAsync(ppu: number, zoneM: number, widthM: number, signal?: { cancelled: boolean }): Promise<FloorAtlas | null> {
   const zones = floorOrder.length;
+  const zoneW = ppu * zoneM;
   const W = Math.round(zoneW * zones);
-  const H = Math.round(zoneH);
+  const H = Math.round(ppu * widthM);
+  const scale = ppu / 300;
   const color = makeCanvas(W, H);
   const height = makeCanvas(W, H);
   const surface = makeCanvas(W, H);
@@ -518,18 +628,34 @@ export async function buildFloorAtlasAsync(zoneW: number, zoneH: number, scale: 
   const nctx = normal.getContext("2d")!;
   const idle = () => new Promise<void>((r) => setTimeout(r, 0));
 
+  const photos = await Promise.all(floorOrder.map((k) => (floorPhotos[k] ? loadImage(floorPhotos[k]!.src) : Promise.resolve(null))));
+
   for (let i = 0; i < zones; i++) {
     if (signal?.cancelled) return null;
     const kind = floorOrder[i];
     const r = { x: Math.round(i * zoneW), y: 0, w: Math.round(zoneW), h: H };
-    paintFloor(kind, { c, h }, r, scale, 11);
-    await idle();
     const surf = floorSurface[kind];
+    const photo = photos[i];
+    const spec = floorPhotos[kind];
+    let heightZone: HTMLCanvasElement;
+    let bump: number;
+
+    if (photo && spec) {
+      mirrorTile(c, photo, r, spec.metres * ppu);
+      heightZone = lumaCanvas(color, r);
+      bump = spec.bump;
+      if (kind === "sports-flooring") courtLines(c, r, scale);
+      if (kind === "anti-static-esd") copperGrid(c, r, scale);
+    } else {
+      paintFloor(kind, { c, h }, r, scale, 11);
+      heightZone = makeCanvas(r.w, r.h);
+      heightZone.getContext("2d")!.drawImage(height, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+      bump = surf.normal;
+    }
+    await idle();
     sctx.fillStyle = `rgb(${Math.round(surf.clearcoat * 255)},${Math.round(surf.roughness * 255)},0)`;
     sctx.fillRect(r.x, r.y, r.w, r.h);
-    const zoneHeight = makeCanvas(r.w, r.h);
-    zoneHeight.getContext("2d")!.drawImage(height, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-    nctx.drawImage(heightToNormal(zoneHeight, surf.normal * scale), r.x, r.y);
+    nctx.drawImage(heightToNormal(heightZone, bump * scale), r.x, r.y);
     await idle();
   }
   return { color, normal, surface, zones };

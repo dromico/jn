@@ -43,7 +43,7 @@ export function WhatsAppFab() {
       aria-hidden={hidden || undefined}
       tabIndex={hidden ? -1 : undefined}
       className={cn(
-        "fixed bottom-5 right-4 z-50 flex size-[60px] items-center justify-center rounded-full bg-vinyl text-white shadow-[0_6px_20px_rgba(35,49,45,0.22)] transition-[opacity,transform] duration-200 hover:bg-vinyl-dark sm:bottom-8 sm:right-8",
+        "wa-fab fixed bottom-5 right-4 z-50 flex size-[60px] items-center justify-center rounded-full bg-vinyl text-white shadow-[0_6px_20px_rgba(35,49,45,0.22)] transition-[opacity,transform] duration-200 hover:bg-vinyl-dark sm:bottom-8 sm:right-8",
         hidden && "pointer-events-none translate-y-3 opacity-0",
       )}
     >

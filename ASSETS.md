@@ -46,7 +46,7 @@ Paths are set in `content/equipment.ts`.
 
 ## Hero and swatch textures
 
-**Hero roll and slab: photo textures.** The hero uses six 1024 px tiles in `public/textures/`, generated with Google's Nano Banana 2.1 image model (through OpenRouter) on 18 Nov 2026. They are AI-generated, so there is no third-party licence to credit.
+**Photo textures.** The hero, the sample board, the mega menu and the service-page heroes use six 1024 px tiles in `public/textures/`, generated with Google's Nano Banana 2.1 image model (through OpenRouter) on 18 Nov 2026. They are AI-generated, so there is no third-party licence to credit.
 
 | File | Floor | Covers | Notes |
 |---|---|---|---|
@@ -63,4 +63,4 @@ Carpet stays procedural: the image model's filter refused every carpet prompt.
 
 After changing a texture, regenerate the two stills (`public/images/hero-start.png` for the first paint on phones, `public/images/hero-poster.png` for reduced motion) by screenshotting the canvas at `/en?hero=0` and `/en?hero=1`.
 
-**Sample board, mega menu and service heroes: procedural.** These are still drawn in code by the painters in `components/hero/textures.ts`, with no image files.
+**Sample board, mega menu and service heroes** use the same photo files, so replacing a file updates every place that floor appears. Carpet is drawn in code everywhere. The procedural painters in `components/hero/textures.ts` stay as the fallback if a file is missing.

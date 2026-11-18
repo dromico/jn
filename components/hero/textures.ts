@@ -513,26 +513,36 @@ interface PhotoSpec {
   metres: number;
   /** Bump strength when the photo's brightness is used as a height map. */
   bump: number;
+  /** The file is turned 90° so planks run across the roll. Swatches turn it back. */
+  rotated?: boolean;
 }
 
 export const floorPhotos: Partial<Record<FloorKind, PhotoSpec>> = {
   "homogeneous-vinyl": { src: "/textures/homogeneous.webp", metres: 0.9, bump: 0.35 },
-  "vinyl-tiles-lvt": { src: "/textures/lvt.webp", metres: 1.15, bump: 1.5 },
-  "sports-flooring": { src: "/textures/sports.webp", metres: 1.1, bump: 0.7 },
+  "vinyl-tiles-lvt": { src: "/textures/lvt.webp", metres: 1.15, bump: 1.5, rotated: true },
+  "sports-flooring": { src: "/textures/sports.webp", metres: 1.1, bump: 0.7, rotated: true },
   "gym-flooring": { src: "/textures/gym.webp", metres: 0.7, bump: 2.6 },
   "anti-static-esd": { src: "/textures/esd.webp", metres: 1.0, bump: 0.25 },
 };
 
 export const concretePhoto = "/textures/concrete.webp";
 
+const imageCache = new Map<string, Promise<HTMLImageElement | null>>();
+
+/** Load (once) and decode an image. Resolves to null if it fails. */
 export function loadImage(src: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.decoding = "async";
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
-  });
+  let p = imageCache.get(src);
+  if (!p) {
+    p = new Promise((resolve) => {
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = src;
+    });
+    imageCache.set(src, p);
+  }
+  return p;
 }
 
 /** Tile an image across a rectangle, mirroring every other tile so the edges never show a seam. */
@@ -555,7 +565,8 @@ function mirrorTile(ctx: Ctx, img: CanvasImageSource, r: Rect, tile: number) {
 /** Brightness of a region as a grey height canvas. */
 function lumaCanvas(source: HTMLCanvasElement, r: Rect) {
   const out = makeCanvas(r.w, r.h);
-  const octx = out.getContext("2d")!;
+  // Read back twice (here and in heightToNormal), so ask for a CPU-side canvas.
+  const octx = out.getContext("2d", { willReadFrequently: true })!;
   octx.drawImage(source, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
   const img = octx.getImageData(0, 0, out.width, out.height);
   const d = img.data;
@@ -603,6 +614,35 @@ function copperGrid(c: Ctx, r: Rect, s: number) {
     }
     c.stroke();
   });
+}
+
+/**
+ * Paint a floor sample (sample board, mega menu, service heroes) with the same
+ * photo textures as the hero, planks running left to right. Falls back to the
+ * procedural painter for carpet, or if the photo fails to load.
+ *
+ * `pxPerMetre` sets the scale: how many canvas pixels one metre of floor takes.
+ */
+export async function paintFloorSwatch(kind: FloorKind, ctx: Ctx, r: Rect, pxPerMetre: number, seed = 5): Promise<void> {
+  const spec = floorPhotos[kind];
+  const img = spec ? await loadImage(spec.src) : null;
+  const s = pxPerMetre / 300;
+  if (!img || !spec) {
+    paintFloor(kind, { c: ctx }, r, s, seed);
+    return;
+  }
+  const tile = spec.metres * pxPerMetre;
+  if (spec.rotated) {
+    ctx.save();
+    ctx.translate(r.x, r.y + r.h);
+    ctx.rotate(-Math.PI / 2);
+    mirrorTile(ctx, img, { x: 0, y: 0, w: r.h, h: r.w }, tile);
+    ctx.restore();
+  } else {
+    mirrorTile(ctx, img, r, tile);
+  }
+  if (kind === "sports-flooring") courtLines(ctx, r, s);
+  if (kind === "anti-static-esd") copperGrid(ctx, r, s);
 }
 
 /**

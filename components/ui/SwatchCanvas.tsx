@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { floorBase, paintFloor, type FloorKind } from "@/components/hero/textures";
+import { floorBase, paintFloorSwatch, type FloorKind } from "@/components/hero/textures";
 import { cn } from "@/lib/cn";
 
 /**
- * Paints a procedural floor texture into a canvas that fills its parent.
- * `density` scales the pattern: 1 is the sample-board size.
+ * Paints a floor sample into a canvas that fills its parent, using the same
+ * photo textures as the hero (procedural for carpet).
+ * `density` scales the pattern: 1 is the sample-board size, smaller shows more floor.
  */
 export function SwatchCanvas({ kind, className, density = 1, seed = 5 }: { kind: FloorKind; className?: string; density?: number; seed?: number }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -26,8 +27,9 @@ export function SwatchCanvas({ kind, className, density = 1, seed = 5 }: { kind:
       canvas.height = h;
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
-      paintFloor(kind, { c: ctx }, { x: 0, y: 0, w, h }, dpr * density, seed);
       done = true;
+      // About 0.45 m of floor across a sample-board swatch.
+      void paintFloorSwatch(kind, ctx, { x: 0, y: 0, w, h }, 420 * dpr * density, seed);
     };
     // Paint when near the viewport, and again if the size changes a lot.
     const io = new IntersectionObserver(

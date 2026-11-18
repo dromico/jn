@@ -138,6 +138,11 @@ a {
   }
 }
 
+/* The full-screen mobile menu has its own quote button. */
+html[data-menu="open"] .wa-fab {
+  display: none;
+}
+
 /* Marquee */
 @keyframes marquee {
   from {

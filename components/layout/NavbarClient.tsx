@@ -101,11 +101,14 @@ export function NavbarClient({ floors, labels }: { floors: NavFloor[]; labels: L
   useEffect(() => {
     if (!mobileOpen) return;
     window.__lenis?.stop();
-    const prev = document.documentElement.style.overflow;
-    document.documentElement.style.overflow = "hidden";
+    const root = document.documentElement;
+    const prev = root.style.overflow;
+    root.style.overflow = "hidden";
+    root.dataset.menu = "open"; // hides the floating WhatsApp button (globals.css)
     return () => {
       window.__lenis?.start();
-      document.documentElement.style.overflow = prev;
+      root.style.overflow = prev;
+      delete root.dataset.menu;
     };
   }, [mobileOpen]);
 

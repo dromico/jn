@@ -96,8 +96,8 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
 
   return (
     <section ref={section} className={cn("hero-pin relative", mode === "poster" && "!h-auto")} aria-labelledby="hero-title">
-      <div className={cn("hero-sticky sticky top-[var(--nav-h)] flex h-[calc(100svh-var(--nav-h))] min-h-[560px] flex-col", mode === "poster" && "!relative !h-auto")}>
-        <div className="wrap grid flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-y-2 pb-5 pt-7 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:items-center md:gap-x-10 md:py-10">
+      <div className={cn("hero-sticky sticky top-[var(--nav-h)] flex h-[calc(100svh-var(--nav-h))] min-h-[560px] flex-col", mode === "poster" && "!relative !top-0 !h-auto")}>
+        <div className={cn("wrap grid flex-1 grid-rows-[auto_minmax(0,1fr)_auto] gap-y-2 pb-5 pt-7 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:grid-rows-1 md:items-center md:gap-x-10 md:py-10", mode === "poster" && "!grid-rows-none gap-y-5")}>
           <div className="md:row-span-1">
             <h1 id="hero-title" className="display text-[40px] leading-[1] sm:text-[52px] lg:text-[64px] xl:text-[72px] xl:leading-[0.98]">
               {t("title")}
@@ -113,7 +113,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
             </div>
           </div>
 
-          <div className="relative min-h-0 md:h-full md:max-h-[640px]">
+          <div className={cn("relative min-h-0 md:h-full md:max-h-[640px]", mode === "poster" && "aspect-[3/2] md:aspect-[4/3] md:h-auto")}>
             <div ref={stage} className="relative size-full min-h-[240px] overflow-hidden rounded-md bg-slab">
               {mode === "3d" && (
                 <div className={cn("absolute inset-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")}>

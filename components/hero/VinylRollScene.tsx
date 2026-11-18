@@ -9,11 +9,11 @@
  * along the strip (see textures.ts), and an amber hot-weld runs across each
  * seam just after the roll passes it.
  */
-import { useEffect, useMemo, useRef, type MutableRefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
 import { ContactShadows, Environment, Lightformer, PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
-import { buildFloorAtlas, paintConcrete } from "./textures";
+import { buildFloorAtlasAsync, paintConcrete, type FloorAtlas } from "./textures";
 
 // World units are roughly metres, with the thickness exaggerated so you can see it.
 const SHEET_LENGTH = 6;
@@ -180,9 +180,20 @@ class SheetGeometry extends THREE.BufferGeometry {
 
 function useSheetMaterials(quality: "high" | "low") {
   const gl = useThree((s) => s.gl);
-  return useMemo(() => {
+  const [atlas, setAtlas] = useState<FloorAtlas | null>(null);
+
+  // Paint the six floors off the critical path, one at a time.
+  useEffect(() => {
+    const signal = { cancelled: false };
     const ppu = quality === "high" ? 256 : 150;
-    const atlas = buildFloorAtlas(ppu * (SHEET_LENGTH / ZONES), ppu * SHEET_WIDTH, ppu / 300);
+    buildFloorAtlasAsync(ppu * (SHEET_LENGTH / ZONES), ppu * SHEET_WIDTH, ppu / 300, signal).then((a) => a && setAtlas(a));
+    return () => {
+      signal.cancelled = true;
+    };
+  }, [quality]);
+
+  return useMemo(() => {
+    if (!atlas) return null;
     const aniso = Math.min(8, gl.capabilities.getMaxAnisotropy());
 
     const map = new THREE.CanvasTexture(atlas.color);
@@ -229,7 +240,7 @@ function useSheetMaterials(quality: "high" | "low") {
     const edge = new THREE.MeshStandardMaterial({ map: edgeMap, roughness: 0.75, envMapIntensity: 0.6 });
 
     return { face, edge, dispose: () => [map, normalMap, surface, edgeMap, face, edge].forEach((d) => d.dispose()) };
-  }, [gl, quality]);
+  }, [gl, atlas]);
 }
 
 function useConcrete(quality: "high" | "low") {
@@ -318,12 +329,12 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
 
   useEffect(() => () => {
     geometry.dispose();
-    mats.dispose();
     concrete.dispose();
     glowTex.dispose();
     weldMats.forEach((m) => Object.values(m).forEach((x) => x.dispose()));
     Object.values(weldGeo).forEach((g) => g.dispose());
-  }, [geometry, mats, concrete, glowTex, weldMats, weldGeo]);
+  }, [geometry, concrete, glowTex, weldMats, weldGeo]);
+  useEffect(() => () => mats?.dispose(), [mats]);
 
   useFrame((_, dt) => {
     const st = state.current;
@@ -417,7 +428,7 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
     st.sheen = THREE.MathUtils.damp(st.sheen, st.sheenTarget, 6, dt);
     if (sheen.current) sheen.current.intensity = st.sheen * 3;
 
-    if (!st.ready) {
+    if (!st.ready && mats) {
       st.ready = true;
       requestAnimationFrame(() => onReady?.());
     }
@@ -457,7 +468,7 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
         <meshStandardMaterial map={concrete} color="#E4E7E4" roughness={0.92} envMapIntensity={0.5} />
       </mesh>
 
-      <mesh ref={sheet} geometry={geometry} material={[mats.face, mats.edge]} frustumCulled={false} onPointerMove={onMove} onPointerOut={onOut} />
+      {mats && <mesh ref={sheet} geometry={geometry} material={[mats.face, mats.edge]} frustumCulled={false} onPointerMove={onMove} onPointerOut={onOut} />}
 
       <group ref={core}>
         <mesh rotation-x={Math.PI / 2}>

@@ -2,7 +2,6 @@
 # Production image for jayanexus.com (Next.js standalone output).
 
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 

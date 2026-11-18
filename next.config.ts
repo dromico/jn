@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    qualities: [60, 75],
   },
   // The old cleaning-services app lives in legacy/ and is never built.
   outputFileTracingExcludes: { "*": ["legacy/**"] },

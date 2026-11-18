@@ -50,7 +50,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
     const decide = () => {
       if (reduce.matches || !supportsWebGL()) {
         setMode("poster");
-        return;
+        return undefined;
       }
       const nav = navigator as Navigator & { deviceMemory?: number };
       const low =
@@ -58,16 +58,34 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
         (navigator.hardwareConcurrency ?? 8) <= 4 ||
         (nav.deviceMemory ?? 8) <= 4;
       setQuality(low ? "low" : "high");
-      // Let the headline paint first; build the scene when the main thread is free.
-      const start = () => setMode("3d");
-      const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
-      if (w.requestIdleCallback) w.requestIdleCallback(start, { timeout: 1200 });
-      else setTimeout(start, 300);
+      const start = () => {
+        cleanup();
+        setMode("3d");
+      };
+      const events = ["scroll", "wheel", "touchstart", "pointerdown", "keydown"] as const;
+      const cleanup = () => events.forEach((e) => window.removeEventListener(e, start));
+      if (low) {
+        // Phones: a still of the opening frame until the visitor starts
+        // scrolling, so the 3D bundle never competes with the first paint.
+        events.forEach((e) => window.addEventListener(e, start, { passive: true, once: true }));
+      } else {
+        // Desktop: build the scene once the main thread is free.
+        const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+        if (w.requestIdleCallback) w.requestIdleCallback(start, { timeout: 1500 });
+        else setTimeout(start, 400);
+      }
+      return cleanup;
     };
-    decide();
-    const onChange = () => (reduce.matches ? setMode("poster") : decide());
+    let cleanup = decide();
+    const onChange = () => {
+      cleanup?.();
+      cleanup = reduce.matches ? (setMode("poster"), undefined) : decide();
+    };
     reduce.addEventListener("change", onChange);
-    return () => reduce.removeEventListener("change", onChange);
+    return () => {
+      cleanup?.();
+      reduce.removeEventListener("change", onChange);
+    };
   }, []);
 
   // Pause rendering while the hero is off screen.
@@ -116,7 +134,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
           <div className={cn("relative min-h-0 md:h-full md:max-h-[640px]", mode === "poster" && "aspect-[3/2] md:aspect-[4/3] md:h-auto")}>
             <div ref={stage} className="relative size-full min-h-[240px] overflow-hidden rounded-md bg-slab">
               {mode === "3d" && (
-                <div className={cn("absolute inset-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")}>
+                <div className={cn("absolute inset-0 z-[1] transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")}>
                   <VinylRollScene
                     progress={progress}
                     pointer={pointer}
@@ -131,7 +149,18 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
               {mode === "poster" && (
                 <Image src="/images/hero-poster.png" alt={t("posterAlt")} fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover" priority={false} />
               )}
-              {!ready && mode !== "poster" && <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_80%,#E3E6E3,transparent_70%)]" />}
+              {mode !== "poster" && (
+                <Image
+                  src="/images/hero-start.png"
+                  alt=""
+                  aria-hidden="true"
+                  fill
+                  sizes="(min-width: 768px) 58vw, 100vw"
+                  priority
+                  quality={60}
+                  className={cn("object-cover transition-opacity duration-700", ready ? "opacity-0" : "opacity-100")}
+                />
+              )}
             </div>
 
             <div className="absolute right-3 top-3 rounded-md border border-hairline bg-white px-3 py-2 text-[12px] leading-[1.5] sm:right-4 sm:top-4 sm:px-4 sm:py-3 sm:text-[14px]" aria-live="polite">

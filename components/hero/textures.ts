@@ -502,3 +502,35 @@ export function buildFloorAtlas(zoneW: number, zoneH: number, scale: number): Fl
 
   return { color, normal, surface, zones };
 }
+
+/** Same as buildFloorAtlas, but yields to the browser between floors so the page stays responsive. */
+export async function buildFloorAtlasAsync(zoneW: number, zoneH: number, scale: number, signal?: { cancelled: boolean }): Promise<FloorAtlas | null> {
+  const zones = floorOrder.length;
+  const W = Math.round(zoneW * zones);
+  const H = Math.round(zoneH);
+  const color = makeCanvas(W, H);
+  const height = makeCanvas(W, H);
+  const surface = makeCanvas(W, H);
+  const normal = makeCanvas(W, H);
+  const c = color.getContext("2d", { willReadFrequently: true })!;
+  const h = height.getContext("2d", { willReadFrequently: true })!;
+  const sctx = surface.getContext("2d")!;
+  const nctx = normal.getContext("2d")!;
+  const idle = () => new Promise<void>((r) => setTimeout(r, 0));
+
+  for (let i = 0; i < zones; i++) {
+    if (signal?.cancelled) return null;
+    const kind = floorOrder[i];
+    const r = { x: Math.round(i * zoneW), y: 0, w: Math.round(zoneW), h: H };
+    paintFloor(kind, { c, h }, r, scale, 11);
+    await idle();
+    const surf = floorSurface[kind];
+    sctx.fillStyle = `rgb(${Math.round(surf.clearcoat * 255)},${Math.round(surf.roughness * 255)},0)`;
+    sctx.fillRect(r.x, r.y, r.w, r.h);
+    const zoneHeight = makeCanvas(r.w, r.h);
+    zoneHeight.getContext("2d")!.drawImage(height, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
+    nctx.drawImage(heightToNormal(zoneHeight, surf.normal * scale), r.x, r.y);
+    await idle();
+  }
+  return { color, normal, surface, zones };
+}

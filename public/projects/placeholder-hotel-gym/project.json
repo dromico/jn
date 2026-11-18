@@ -1,0 +1,12 @@
+{
+  "_todo": "TODO: replace with real project (delete this folder or fill it in)",
+  "title": { "en": "Hotel gym (placeholder)", "ms": "Gimnasium hotel (contoh)" },
+  "location": "Kuala Lumpur",
+  "services": ["gym-flooring"],
+  "sector": "hospitality",
+  "areaM2": 210,
+  "startDate": "2026-03-09",
+  "duration": { "en": "5 days", "ms": "5 hari" },
+  "summary": { "en": "15 mm rubber tiles in the weights area and 6 mm rolls under the cardio machines.", "ms": "Jubin getah 15 mm di kawasan angkat berat dan gulungan 6 mm di bawah mesin kardio." },
+  "placeholder": true
+}

@@ -1,0 +1,20 @@
+{
+  "title": { "en": "Project name in English", "ms": "Nama projek dalam Bahasa Malaysia" },
+  "client": "Client or building name",
+  "location": "Town, State",
+  "services": ["homogeneous-vinyl"],
+  "sector": "healthcare",
+  "areaM2": 450,
+  "startDate": "2026-01-15",
+  "endDate": "2026-02-10",
+  "duration": { "en": "4 weeks", "ms": "4 minggu" },
+  "scope": { "en": "What we did, in one or two sentences.", "ms": "Apa yang kami buat, dalam satu atau dua ayat." },
+  "phases": [
+    { "name": "Fasa 1", "zones": { "en": "Ground floor", "ms": "Tingkat bawah" }, "startDate": "2026-01-15" }
+  ],
+  "summary": { "en": "Shown on the project grid and the homepage.", "ms": "Dipaparkan pada grid projek dan halaman utama." },
+  "challenge": { "en": "What made this job difficult.", "ms": "Apa yang menyukarkan kerja ini." },
+  "approach": { "en": "How we did it.", "ms": "Bagaimana kami melakukannya." },
+  "result": { "en": "What the client got.", "ms": "Hasil yang diterima pelanggan." },
+  "featured": false
+}

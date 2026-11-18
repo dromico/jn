@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+legacy
+*.md
+!PROJECTS.md
+.env*
+.claude
+Dockerfile
+.dockerignore

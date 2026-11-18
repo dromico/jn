@@ -1,0 +1,12 @@
+{
+  "_todo": "TODO: replace with real project (delete this folder or fill it in)",
+  "title": { "en": "Specialist clinic (placeholder)", "ms": "Klinik pakar (contoh)" },
+  "location": "Seremban, Negeri Sembilan",
+  "services": ["homogeneous-vinyl"],
+  "sector": "healthcare",
+  "areaM2": 290,
+  "startDate": "2026-01-20",
+  "duration": { "en": "8 days", "ms": "8 hari" },
+  "summary": { "en": "Homogeneous vinyl with welded seams and coved skirting in the treatment rooms.", "ms": "Vinil homogenus dengan sambungan dikimpal dan skirting cove di bilik rawatan." },
+  "placeholder": true
+}

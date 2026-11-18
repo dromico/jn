@@ -1,0 +1,12 @@
+{
+  "_todo": "TODO: replace with real project (delete this folder or fill it in)",
+  "title": { "en": "Data centre server hall (placeholder)", "ms": "Dewan server pusat data (contoh)" },
+  "location": "Cyberjaya, Selangor",
+  "services": ["anti-static-esd"],
+  "sector": "data-centre",
+  "areaM2": 380,
+  "startDate": "2026-04-14",
+  "duration": { "en": "2 weeks", "ms": "2 minggu" },
+  "summary": { "en": "Conductive vinyl on a copper earthing grid, tested and reported at handover.", "ms": "Vinil konduktif di atas grid pembumian kuprum, diuji dan dilaporkan semasa serahan." },
+  "placeholder": true
+}

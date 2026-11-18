@@ -1,0 +1,169 @@
+@import "tailwindcss";
+
+/* Design tokens: built from the job site. */
+@theme {
+  --color-slab: #eef0ee; /* page: cool pale concrete */
+  --color-spruce: #23312d; /* ink and dark bands */
+  --color-vinyl: #2e6e60; /* primary action */
+  --color-vinyl-dark: #245a4e;
+  --color-mint: #c9dad3; /* light fills, homogeneous swatch */
+  --color-stone: #5a6662; /* secondary text, AA on slab */
+  --color-ink-soft: #4b5753; /* body copy on slab */
+  --color-weld: #e07a1f; /* reserved for the weld */
+  --color-hairline: #d5d9d6;
+  --color-hairline-strong: #a9b2ae;
+  --color-concrete: #e2e5e2; /* photo placeholders */
+  --color-on-dark: #eef0ee;
+  --color-on-dark-muted: #b7c3be;
+  --color-dark-line: #44534e;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+
+  --container-site: 1320px;
+}
+
+:root {
+  --nav-h: 72px;
+  color-scheme: light;
+}
+
+html {
+  background: var(--color-slab);
+  color: var(--color-spruce);
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--color-slab);
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 100;
+  font-size: 17px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+/* Wide headings read like a roll laid flat. */
+.display {
+  font-stretch: 125%;
+  font-variation-settings: "wdth" 125;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  text-wrap: balance;
+}
+
+.wide {
+  font-stretch: 125%;
+  font-variation-settings: "wdth" 125;
+}
+
+.measure {
+  max-width: 68ch;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--container-site);
+  margin-inline: auto;
+  padding-inline: 16px;
+}
+@media (min-width: 640px) {
+  .wrap {
+    padding-inline: 24px;
+  }
+}
+@media (min-width: 1024px) {
+  .wrap {
+    padding-inline: 40px;
+  }
+}
+
+/* Focus: vinyl green, 2px offset. Mint on dark bands. */
+:focus-visible {
+  outline: 2px solid var(--color-vinyl);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.on-dark :focus-visible,
+.on-vinyl :focus-visible {
+  outline-color: var(--color-mint);
+}
+
+::selection {
+  background: var(--color-mint);
+  color: var(--color-spruce);
+}
+
+a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+/* Hero pin length: three screens on desktop, one and a half on phones. */
+.hero-pin {
+  height: 300vh;
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .hero-pin {
+    height: 150vh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-pin {
+    height: auto;
+  }
+  .hero-sticky {
+    position: relative !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+}
+
+/* Marquee */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee-track {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none;
+  }
+}

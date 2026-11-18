@@ -1,0 +1,34 @@
+{
+  "title": { "en": "Hospital Jempol emergency department", "ms": "Jabatan Kecemasan Hospital Jempol" },
+  "client": "Hospital Jempol",
+  "location": "Jempol, Negeri Sembilan",
+  "services": ["homogeneous-vinyl"],
+  "sector": "healthcare",
+  "startDate": "2026-10-22",
+  "scope": {
+    "en": "Strip out the old vinyl, grind and level the slab, and lay new homogeneous vinyl with hot-welded seams and coved skirting across the emergency department.",
+    "ms": "Tanggalkan vinil lama, kisar dan ratakan slab, dan pasang vinil homogenus baharu dengan sambungan kimpalan panas dan skirting cove di seluruh jabatan kecemasan."
+  },
+  "duration": { "en": "Two phases, from 22 October 2026", "ms": "Dua fasa, bermula 22 Oktober 2026" },
+  "phases": [
+    { "name": "Fasa 1", "zones": { "en": "Yellow Zone and Red Zone", "ms": "Zon Kuning dan Zon Merah" }, "startDate": "2026-10-22" },
+    { "name": "Fasa 2", "zones": { "en": "OBS, Sari and Green Zone", "ms": "OBS, Sari dan Zon Hijau" }, "startDate": "2026-11-03" }
+  ],
+  "summary": {
+    "en": "We replaced all the vinyl in a working emergency department, one zone at a time, so the hospital never had to close. We stripped the old floor, levelled the slab, and laid new homogeneous vinyl, hot-welded and coved for infection control.",
+    "ms": "Kami menukar semua lantai vinil di jabatan kecemasan yang masih beroperasi, satu zon pada satu masa, supaya hospital tidak perlu ditutup. Kami tanggalkan lantai lama, ratakan slab, dan pasang vinil homogenus baharu yang dikimpal panas dan dibentuk cove untuk kawalan jangkitan."
+  },
+  "challenge": {
+    "en": "An emergency department can't close. Patients, trolleys and staff kept moving through the building the whole time, and the old vinyl had lifted and split at the seams, which is a problem for infection control. Any dust or adhesive fumes had to stay inside the zone we were working in.",
+    "ms": "Jabatan kecemasan tidak boleh ditutup. Pesakit, troli dan kakitangan terus bergerak di dalam bangunan sepanjang masa, dan vinil lama telah terangkat dan terbelah di sambungan, yang menjadi masalah untuk kawalan jangkitan. Habuk atau bau gam perlu kekal di dalam zon yang sedang dikerjakan."
+  },
+  "approach": {
+    "en": "We agreed a phasing plan with the hospital. In Fasa 1 we closed the Yellow and Red Zones behind dust screens while the rest of the department ran as normal. We lifted the old floor, ground off the adhesive, tested the slab for moisture and poured self-levelling screed. Then we laid the new homogeneous vinyl, grooved and hot-welded every seam, and formed coved skirting along the walls. Each zone was cleaned and handed back before we moved on to OBS, Sari and the Green Zone in Fasa 2.",
+    "ms": "Kami bersetuju dengan pelan berfasa bersama pihak hospital. Dalam Fasa 1, kami tutup Zon Kuning dan Zon Merah di sebalik penghadang habuk sementara bahagian lain jabatan beroperasi seperti biasa. Kami tanggalkan lantai lama, kisar gam, uji kelembapan slab dan tuang simen perata sendiri. Kemudian kami pasang vinil homogenus baharu, alur dan kimpal panas setiap sambungan, dan bentuk skirting cove di sepanjang dinding. Setiap zon dibersihkan dan diserahkan semula sebelum kami beralih ke OBS, Sari dan Zon Hijau dalam Fasa 2."
+  },
+  "result": {
+    "en": "A continuous, sealed floor with no open seams and no corners at the walls, so it can be cleaned and disinfected properly. The department stayed open throughout.",
+    "ms": "Lantai yang bersambung dan kedap, tanpa sambungan terbuka dan tanpa bucu di dinding, jadi ia boleh dibersihkan dan dinyahkuman dengan sempurna. Jabatan terus dibuka sepanjang kerja dijalankan."
+  },
+  "featured": true
+}

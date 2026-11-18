@@ -1,0 +1,12 @@
+{
+  "_todo": "TODO: replace with real project (delete this folder or fill it in)",
+  "title": { "en": "School multipurpose hall (placeholder)", "ms": "Dewan serbaguna sekolah (contoh)" },
+  "location": "Selangor",
+  "services": ["sports-flooring"],
+  "sector": "education",
+  "areaM2": 620,
+  "startDate": "2026-06-02",
+  "duration": { "en": "3 weeks", "ms": "3 minggu" },
+  "summary": { "en": "Sports vinyl over a levelled slab, with badminton lines marked.", "ms": "Vinil sukan di atas slab yang diratakan, dengan garisan badminton." },
+  "placeholder": true
+}

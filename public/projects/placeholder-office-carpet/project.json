@@ -1,0 +1,12 @@
+{
+  "_todo": "TODO: replace with real project (delete this folder or fill it in)",
+  "title": { "en": "Office fit-out, carpet tiles (placeholder)", "ms": "Ubah suai pejabat, jubin permaidani (contoh)" },
+  "location": "Petaling Jaya, Selangor",
+  "services": ["carpet", "vinyl-tiles-lvt"],
+  "sector": "commercial",
+  "areaM2": 1150,
+  "startDate": "2026-08-18",
+  "duration": { "en": "2 weeks, nights and weekends", "ms": "2 minggu, waktu malam dan hujung minggu" },
+  "summary": { "en": "Carpet tiles in the open-plan floor and LVT in the pantry and reception.", "ms": "Jubin permaidani di ruang pelan terbuka dan LVT di pantri dan kaunter penyambut tetamu." },
+  "placeholder": true
+}

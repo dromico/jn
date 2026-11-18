@@ -24,9 +24,24 @@ const X0 = -SHEET_LENGTH / 2;
 const ZONES = 6;
 const SLAB_SIZE = 60;
 
+/**
+ * Where the visible frame sits inside the full-bleed canvas. The hero opens
+ * with the scene clipped to the right-hand column and grows it to the full
+ * screen; `grow` runs 0 (column) to 1 (full screen). Rect is in CSS pixels,
+ * relative to the canvas.
+ */
+export interface SceneFrame {
+  grow: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface SceneProps {
-  /** 0..1 scroll progress, written by the parent; read every frame. */
+  /** 0..1 scroll progress, already smoothed by the parent; read every frame. */
   progress: MutableRefObject<number>;
+  frame: MutableRefObject<SceneFrame>;
   /** Normalised pointer, -1..1 on each axis, written by the parent. */
   pointer: MutableRefObject<{ x: number; y: number }>;
   quality: "high" | "low";
@@ -338,12 +353,13 @@ const smooth = (a: number, b: number, v: number) => {
 const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
 
 /** Unrolled length for a given scroll progress. Finishes at 76%. */
-export const unrolledAt = (p: number) => SHEET_LENGTH * easeInOut(clamp01((p - 0.02) / 0.74));
+// The first 8% of the scroll grows the frame to full screen; the roll starts as it lands.
+export const unrolledAt = (p: number) => SHEET_LENGTH * easeInOut(clamp01((p - 0.06) / 0.72));
 
 // ---------------------------------------------------------------------------
 // The world
 
-function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps, "active" | "onDecline">) {
+function World({ progress, frame, pointer, quality, onZone, onReady }: Omit<SceneProps, "active" | "onDecline">) {
   const segments = quality === "high" ? 720 : 380;
   const geometry = useMemo(() => new SheetGeometry(segments), [segments]);
   const mats = useSheetMaterials(quality);
@@ -393,7 +409,22 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
   }, []);
 
   const state = useRef({ p: -1, mx: 0, my: 0, sheen: 0, sheenTarget: 0, zone: -1, ready: false });
-  const tmp = useMemo(() => ({ target: new THREE.Vector3(), pos: new THREE.Vector3(), top: new THREE.Vector3(), offset: new THREE.Vector3(), sph: new THREE.Spherical(), origin: new THREE.Vector3() }), []);
+  const tmp = useMemo(
+    () => ({
+      target: new THREE.Vector3(),
+      pos: new THREE.Vector3(),
+      top: new THREE.Vector3(),
+      offset: new THREE.Vector3(),
+      sph: new THREE.Spherical(),
+      origin: new THREE.Vector3(),
+      up: new THREE.Vector3(),
+      worldUp: new THREE.Vector3(0, 1, 0),
+      // Portrait screens: the finished floor runs top to bottom, first floor at the top.
+      portraitUp: new THREE.Vector3(-1, 0, 0),
+    }),
+    [],
+  );
+  const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera as THREE.PerspectiveCamera);
   const size = useThree((s) => s.size);
 
@@ -410,22 +441,21 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
 
   useFrame((_, dt) => {
     const st = state.current;
-    const goal = progress.current;
-    // Damp toward the scroll position so Lenis-smoothed input stays silky.
-    st.p = st.p < 0 ? goal : THREE.MathUtils.damp(st.p, goal, 7, dt);
-    if (Math.abs(st.p - goal) < 0.0004) st.p = goal;
-    const p = st.p;
+    // The parent smooths scroll progress once and drives the DOM from the same
+    // value, so the frame, the headline and the 3D stay in step.
+    const p = progress.current;
+    st.p = p;
     st.mx = THREE.MathUtils.damp(st.mx, pointer.current.x, 4, dt);
     st.my = THREE.MathUtils.damp(st.my, pointer.current.y, 4, dt);
 
     // --- Sheet
     const s = unrolledAt(p);
-    const settle = smooth(0.76, 0.9, p);
+    const settle = smooth(0.78, 0.9, p);
     const rOuter = geometry.update(s, settle);
 
     // Cardboard core: rolls on with the sheet, then carries on off the slab.
     if (core.current) {
-      const off = Math.pow(smooth(0.74, 0.92, p), 1.6) * 5;
+      const off = Math.pow(smooth(0.76, 0.92, p), 1.6) * 5;
       core.current.position.set(X0 + s + off, rOuter, 0);
       core.current.rotation.z = -(s + off) / CORE_RADIUS;
       core.current.visible = off < 4.9;
@@ -469,7 +499,22 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
     // --- Camera: a low product shot looking along the roll's end, the laid
     // floor running away to the left. It pulls back and rises as the floor
     // grows, then lifts to top-down.
-    const aspect = size.width / Math.max(1, size.height);
+    // Frame: zoom out and shift the projection so that, while the canvas is
+    // clipped to the column, the column shows exactly the framing it would
+    // have as its own canvas. Both relax to a plain full-screen camera.
+    const fr = frame.current;
+    const g = clamp01(fr.grow);
+    const W = Math.max(1, size.width);
+    const H = Math.max(1, size.height);
+    const fw = fr.w > 0 ? fr.w : W;
+    const fh = fr.h > 0 ? fr.h : H;
+    const dx = fr.x + fw / 2 - W / 2;
+    const dy = fr.y + fh / 2 - H / 2;
+    camera.zoom = THREE.MathUtils.lerp(fh / H, 1, g);
+    camera.setViewOffset(W, H, -dx * (1 - g), -dy * (1 - g), W, H);
+    camera.updateProjectionMatrix();
+    const aspect = THREE.MathUtils.lerp(fw / fh, W / H, g);
+
     const f = s / SHEET_LENGTH;
     const follow = f * f * (3 - 2 * f);
     const rollX = X0 + s;
@@ -484,7 +529,7 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
       THREE.MathUtils.lerp(4.3, 6.6, follow),
     );
     // Narrow viewports need to step back to keep the roll in frame.
-    const back = aspect < 1.1 ? 1 + (1.1 - aspect) * 0.9 : 1;
+    const back = aspect < 1.1 ? 1 + (1.1 - aspect) * 1.5 : 1;
     tmp.offset.multiplyScalar(back);
     // Subtle parallax, ±3°
     tmp.sph.setFromVector3(tmp.offset);
@@ -495,15 +540,31 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
 
     // Top-down framing that fits the whole laid floor.
     const vfov = THREE.MathUtils.degToRad(camera.fov);
-    const fitH = (SHEET_WIDTH * 1.18) / 2 / Math.tan(vfov / 2);
-    const fitW = (SHEET_LENGTH * 1.1) / 2 / (Math.tan(vfov / 2) * aspect);
+    // On a portrait screen the camera turns 90° so the strip runs top to bottom.
+    const portrait = aspect < 1;
+    // Margins leave room for the spec card (top) and the floor strip (bottom).
+    const across = portrait ? SHEET_LENGTH * 1.36 : SHEET_WIDTH * 1.34;
+    const along = portrait ? SHEET_WIDTH * 1.18 : SHEET_LENGTH * 1.14;
+    const fitH = across / 2 / Math.tan(vfov / 2);
+    const fitW = along / 2 / (Math.tan(vfov / 2) * aspect);
     const height = Math.max(fitH, fitW);
     tmp.top.set(st.mx * 0.08, height, 0.001 + st.my * 0.06);
-    const b = easeInOut(smooth(0.76, 0.98, p));
+    const b = easeInOut(smooth(0.78, 0.98, p));
     tmp.pos.lerp(tmp.top, b);
     tmp.target.lerp(tmp.origin, b);
     camera.position.copy(tmp.pos);
+    tmp.up.copy(tmp.worldUp);
+    if (portrait) tmp.up.lerp(tmp.portraitUp, b).normalize();
+    camera.up.copy(tmp.up);
     camera.lookAt(tmp.target);
+
+    // Keep the fog behind the floor as the camera rises, so a high top-down
+    // shot (narrow screens) doesn't fade the floor into the background.
+    const fog = scene.fog as THREE.Fog | null;
+    if (fog) {
+      fog.near = THREE.MathUtils.lerp(9, height + 2, b);
+      fog.far = THREE.MathUtils.lerp(24, height + 24, b);
+    }
 
     // --- Key light follows the cursor so the sheen moves across the vinyl.
     if (key.current) {
@@ -605,7 +666,8 @@ function World({ progress, pointer, quality, onZone, onReady }: Omit<SceneProps,
 
 export default function VinylRollScene(props: SceneProps) {
   const { active, quality, onDecline, ...rest } = props;
-  const dprRef = useRef<[number, number]>([1, quality === "high" ? 1.5 : 1.25]);
+  // Full-screen canvas: cap the pixel ratio at 1.25 to keep scrolling smooth.
+  const dprRef = useRef<[number, number]>([1, 1.25]);
   return (
     <Canvas
       frameloop={active ? "always" : "never"}

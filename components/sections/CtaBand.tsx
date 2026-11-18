@@ -8,7 +8,7 @@ export function CtaBand({ title, body, button, message }: { title: string; body:
   return (
     <section className="wrap py-20 sm:py-24">
       <div className="on-vinyl relative flex flex-wrap items-center justify-between gap-8 overflow-hidden rounded-md bg-vinyl px-6 py-12 sm:px-12 sm:py-16 lg:px-16">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden w-[380px] opacity-[0.22] mix-blend-luminosity md:block">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 hidden w-[380px] opacity-40 md:block [mask-image:linear-gradient(90deg,transparent,#000_45%)]">
           <SwatchCanvas kind="homogeneous-vinyl" />
         </div>
         <div className="relative">

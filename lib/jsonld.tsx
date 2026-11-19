@@ -15,6 +15,7 @@ export function businessJsonLd(locale: Locale) {
     telephone: site.phone,
     foundingDate: String(site.founded),
     image: `${site.url}/${locale}/opengraph-image`,
+    logo: `${site.url}/images/logo/jaya-nexus-logo.png`,
     address: {
       "@type": "PostalAddress",
       addressLocality: site.addressLocality,

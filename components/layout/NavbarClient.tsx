@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { useLocale } from "next-intl";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
@@ -133,8 +134,9 @@ export function NavbarClient({ floors, labels }: { floors: NavFloor[]; labels: L
   return (
     <header className="sticky top-[3px] z-50 border-b border-hairline bg-slab">
       <div className="wrap flex h-[68px] items-center justify-between gap-6">
-        <Link href="/" aria-label={labels.home} className="wide shrink-0 text-lg font-bold tracking-[-0.01em] no-underline">
-          Jaya Nexus
+        <Link href="/" aria-label={labels.home} className="wide flex shrink-0 items-center gap-2.5 text-lg font-bold tracking-[-0.01em] no-underline">
+          <Image src="/images/logo/jaya-nexus-mark.png" alt="" width={41} height={36} priority className="h-9 w-auto" />
+          <span>Jaya Nexus</span>
         </Link>
 
         <nav aria-label={labels.main} className="hidden items-center gap-8 text-[15px] lg:flex">

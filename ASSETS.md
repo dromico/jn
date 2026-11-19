@@ -38,7 +38,10 @@ Paths are set in `content/equipment.ts`.
 
 | Path | Size | Shows |
 |---|---|---|
-| `public/images/logo/` | SVG | Real logo. Until then the navbar uses the text "Jaya Nexus" and `public/images/logo/wordmark.svg` is a placeholder |
+| `public/images/logo/logo jaya.jpeg` | JPEG | The original logo as supplied. The files below are made from it; if the logo changes, replace this and regenerate them (or send a transparent PNG or SVG, which is better) |
+| `public/images/logo/jaya-nexus-mark.png` | 320 px, transparent | The triangle mark, used in the navbar and footer next to the name, and on the social preview images |
+| `public/images/logo/jaya-nexus-logo.png` | Transparent | The full logo with the arched name, used in search results (structured data) |
+| `app/icon.png`, `app/apple-icon.png` | 512 px, 180 px | Browser tab icon and phone home-screen icon, made from the mark |
 | `public/images/clients/*.svg` | SVG or PNG, transparent | Client logos for the marquee. List them in `content/clients.ts` (and get permission first) |
 | About page: crew photo | 4:3, ≥ 1600 px | Our crew on site. Slot is in `app/[locale]/about/page.tsx` (`Photo src={null}`): set `src` to e.g. `/images/team/crew.jpg` |
 | About page: team members | 4:5 | Supervisors and installers. Same file, "The team" section |

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
@@ -14,7 +15,10 @@ export async function Footer({ locale }: { locale: Locale }) {
     <footer className="on-dark bg-spruce text-[#C4CFCA]">
       <div className="wrap grid gap-10 pb-10 pt-16 text-[14px] leading-[1.9] sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
-          <p className="wide mb-2.5 text-lg font-bold text-on-dark">{site.legalName}</p>
+          <p className="wide mb-2.5 flex items-center gap-3 text-lg font-bold text-on-dark">
+            <Image src="/images/logo/jaya-nexus-mark.png" alt="" width={46} height={40} className="h-10 w-auto" />
+            {site.legalName}
+          </p>
           <p>{t("tagline")}</p>
           <ul className="mt-2.5">
             {site.registrations.map((r) => (

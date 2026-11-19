@@ -14,6 +14,7 @@ export function Photo({
   tone = "concrete",
   priority,
   labelAlign = "center",
+  fit = "cover",
 }: {
   src?: string | null;
   alt: string;
@@ -24,10 +25,18 @@ export function Photo({
   priority?: boolean;
   /** Where the placeholder label sits (used by the before/after slider so both labels stay readable). */
   labelAlign?: "center" | "start" | "end";
+  /** "contain" shows the whole image on white with a margin: for product shots on a white background. */
+  fit?: "cover" | "contain";
 }) {
   return (
     <div className={cn("relative overflow-hidden rounded-xs", className)}>
-      {src ? (
+      {src && fit === "contain" ? (
+        <div className="absolute inset-0 bg-white">
+          <div className="absolute inset-[8%]">
+            <Image src={src} alt={alt} fill sizes={sizes} className="object-contain" priority={priority} />
+          </div>
+        </div>
+      ) : src ? (
         <Image src={src} alt={alt} fill sizes={sizes} className="object-cover" priority={priority} />
       ) : (
         <div

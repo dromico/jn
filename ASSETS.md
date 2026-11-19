@@ -18,7 +18,7 @@ See `PROJECTS.md`. Per project folder:
 
 ## Equipment (homepage row and About page)
 
-All 4:5 or wider, ≥ 1000 px on the short side, tool on a plain background or in use on site.
+Product shots on a white background work best: each is shown whole, centred on a white tile. Square, at least 800 × 800 px. The first four are in (supplied 19 Nov 2026, trimmed and placed on white).
 
 | Path | Shows |
 |---|---|

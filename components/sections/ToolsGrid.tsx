@@ -14,6 +14,7 @@ export function ToolsGrid({ tools, locale, columns = 4 }: { tools: Tool[]; local
             label={tool.placeholder[locale]}
             className="aspect-[4/5] sm:aspect-auto sm:h-[280px]"
             sizes="(min-width: 1024px) 25vw, 50vw"
+            fit="contain"
           />
           <p className="mb-1 mt-3.5 text-[17px] font-semibold leading-snug">{tool.name[locale]}</p>
           <p className="text-[14px] text-stone">{tool.does[locale]}</p>

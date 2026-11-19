@@ -117,13 +117,13 @@ a {
   text-decoration-thickness: 1px;
 }
 
-/* Hero pin length: three screens on desktop, one and a half on phones. */
+/* Hero pin length: room for the dive, five layers and the pull-back. */
 .hero-pin {
-  height: 300vh;
+  height: 560vh;
 }
 @media (max-width: 767px), (pointer: coarse) {
   .hero-pin {
-    height: 150vh;
+    height: 440vh;
   }
 }
 @media (prefers-reduced-motion: reduce) {

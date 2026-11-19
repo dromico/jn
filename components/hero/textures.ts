@@ -1,17 +1,15 @@
 /**
- * Procedural floor textures. No image files needed.
+ * Floor textures for the sample swatches (sample board, mega menu, service
+ * heroes): photos where we have them, procedural painters otherwise. The hero
+ * uses the homogeneous vinyl and concrete photos.
  *
- * Each painter draws a colour layer and (optionally) a height layer into 2D
- * canvas contexts. The hero turns the height layer into a normal map; the
- * sample board and service heroes only use the colour layer.
- *
- * To swap in photos of real floors later, see ASSETS.md.
+ * To swap in photos of real floors, see ASSETS.md.
  */
 import type { ServiceSlug } from "@/content/services";
 
 export type FloorKind = ServiceSlug;
 
-/** The order the floors come off the roll in the hero. */
+/** Floor order; also seeds each painter differently. */
 export const floorOrder: FloorKind[] = [
   "homogeneous-vinyl",
   "vinyl-tiles-lvt",
@@ -20,16 +18,6 @@ export const floorOrder: FloorKind[] = [
   "anti-static-esd",
   "carpet",
 ];
-
-/** Physical surface feel per floor, used by the 3D material. */
-export const floorSurface: Record<FloorKind, { roughness: number; clearcoat: number; normal: number }> = {
-  "homogeneous-vinyl": { roughness: 0.42, clearcoat: 0.55, normal: 0.6 },
-  "vinyl-tiles-lvt": { roughness: 0.5, clearcoat: 0.4, normal: 1.4 },
-  "sports-flooring": { roughness: 0.36, clearcoat: 0.75, normal: 0.8 },
-  "gym-flooring": { roughness: 0.92, clearcoat: 0.0, normal: 2.4 },
-  "anti-static-esd": { roughness: 0.4, clearcoat: 0.5, normal: 0.6 },
-  carpet: { roughness: 1.0, clearcoat: 0.0, normal: 3.4 },
-};
 
 /** Flat colour per floor, for CSS fallbacks before a canvas paints. */
 export const floorBase: Record<FloorKind, string> = {
@@ -416,113 +404,24 @@ export function paintFloor(kind: FloorKind, target: PaintTarget, rect: Rect, sca
   painters[kind](target, rect, scale, rng(seed + floorOrder.indexOf(kind) * 101));
 }
 
-/** Pale concrete slab for the hero floor. */
-export function paintConcrete(ctx: Ctx, rect: Rect, scale = 1, seed = 3) {
-  const rand = rng(seed);
-  fill(ctx, rect, "#DADDDA");
-  blotch(ctx, rect, 120 * scale, 0.3, rand);
-  blotch(ctx, rect, 26 * scale, 0.18, rand);
-  const n = Math.floor((rect.w * rect.h) / (900 * scale * scale));
-  for (let i = 0; i < n; i++) {
-    ctx.fillStyle = rand() < 0.5 ? "rgba(200,196,188,0.6)" : "rgba(236,238,235,0.6)";
-    ctx.beginPath();
-    ctx.arc(rect.x + rand() * rect.w, rect.y + rand() * rect.h, (0.5 + rand()) * scale, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  grain(ctx, rect, 10, rand);
-}
-
-/**
- * Convert a grey height canvas to a tangent-space normal map.
- * Returns a new canvas the same size.
- */
-export function heightToNormal(height: HTMLCanvasElement, strength = 1) {
-  const w = height.width;
-  const h = height.height;
-  const src = height.getContext("2d")!.getImageData(0, 0, w, h).data;
-  const out = makeCanvas(w, h);
-  const octx = out.getContext("2d")!;
-  const img = octx.createImageData(w, h);
-  const d = img.data;
-  const at = (x: number, y: number) => src[((Math.min(h - 1, Math.max(0, y)) * w + Math.min(w - 1, Math.max(0, x))) * 4)] / 255;
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x < w; x++) {
-      const dx = (at(x + 1, y) - at(x - 1, y)) * strength;
-      const dy = (at(x, y + 1) - at(x, y - 1)) * strength;
-      const len = Math.hypot(dx, dy, 1);
-      const i = (y * w + x) * 4;
-      d[i] = ((-dx / len) * 0.5 + 0.5) * 255;
-      d[i + 1] = ((dy / len) * 0.5 + 0.5) * 255;
-      d[i + 2] = ((1 / len) * 0.5 + 0.5) * 255;
-      d[i + 3] = 255;
-    }
-  }
-  octx.putImageData(img, 0, 0);
-  return out;
-}
-
-export interface FloorAtlas {
-  color: HTMLCanvasElement;
-  normal: HTMLCanvasElement;
-  /** R = clearcoat, G = roughness (three.js channel convention) */
-  surface: HTMLCanvasElement;
-  zones: number;
-}
-
-/**
- * Paint all six floors end to end along one strip, the way they come off the
- * roll. Width runs along the roll's length (u), height across the roll (v).
- */
-export function buildFloorAtlas(zoneW: number, zoneH: number, scale: number): FloorAtlas {
-  const zones = floorOrder.length;
-  const W = Math.round(zoneW * zones);
-  const H = Math.round(zoneH);
-  const color = makeCanvas(W, H);
-  const height = makeCanvas(W, H);
-  const surface = makeCanvas(W, H);
-  const c = color.getContext("2d", { willReadFrequently: true })!;
-  const h = height.getContext("2d", { willReadFrequently: true })!;
-  const sctx = surface.getContext("2d")!;
-
-  // Normal strength differs per floor, so build normals zone by zone.
-  const normal = makeCanvas(W, H);
-  const nctx = normal.getContext("2d")!;
-
-  floorOrder.forEach((kind, i) => {
-    const r = { x: Math.round(i * zoneW), y: 0, w: Math.round(zoneW), h: H };
-    paintFloor(kind, { c, h }, r, scale, 11);
-    const surf = floorSurface[kind];
-    sctx.fillStyle = `rgb(${Math.round(surf.clearcoat * 255)},${Math.round(surf.roughness * 255)},0)`;
-    sctx.fillRect(r.x, r.y, r.w, r.h);
-
-    const zoneHeight = makeCanvas(r.w, r.h);
-    zoneHeight.getContext("2d")!.drawImage(height, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-    nctx.drawImage(heightToNormal(zoneHeight, surf.normal * scale), r.x, r.y);
-  });
-
-  return { color, normal, surface, zones };
-}
-
 // ---------------------------------------------------------------------------
-// Photo textures for the hero (public/textures/*.webp, see ASSETS.md).
+// Photo textures (public/textures/*.webp, see ASSETS.md).
 // If a file fails to load, that floor falls back to its procedural painter.
 
 interface PhotoSpec {
   src: string;
   /** How many metres of floor one tile of the photo covers. */
   metres: number;
-  /** Bump strength when the photo's brightness is used as a height map. */
-  bump: number;
-  /** The file is turned 90° so planks run across the roll. Swatches turn it back. */
+  /** The file is turned 90°; swatches turn it back so planks run left to right. */
   rotated?: boolean;
 }
 
 export const floorPhotos: Partial<Record<FloorKind, PhotoSpec>> = {
-  "homogeneous-vinyl": { src: "/textures/homogeneous.webp", metres: 0.9, bump: 0.35 },
-  "vinyl-tiles-lvt": { src: "/textures/lvt.webp", metres: 1.15, bump: 1.5, rotated: true },
-  "sports-flooring": { src: "/textures/sports.webp", metres: 1.1, bump: 0.7, rotated: true },
-  "gym-flooring": { src: "/textures/gym.webp", metres: 0.7, bump: 2.6 },
-  "anti-static-esd": { src: "/textures/esd.webp", metres: 1.0, bump: 0.25 },
+  "homogeneous-vinyl": { src: "/textures/homogeneous.webp", metres: 0.9 },
+  "vinyl-tiles-lvt": { src: "/textures/lvt.webp", metres: 1.15, rotated: true },
+  "sports-flooring": { src: "/textures/sports.webp", metres: 1.1, rotated: true },
+  "gym-flooring": { src: "/textures/gym.webp", metres: 0.7 },
+  "anti-static-esd": { src: "/textures/esd.webp", metres: 1.0 },
 };
 
 export const concretePhoto = "/textures/concrete.webp";
@@ -560,22 +459,6 @@ function mirrorTile(ctx: Ctx, img: CanvasImageSource, r: Rect, tile: number) {
       }
     }
   });
-}
-
-/** Brightness of a region as a grey height canvas. */
-function lumaCanvas(source: HTMLCanvasElement, r: Rect) {
-  const out = makeCanvas(r.w, r.h);
-  // Read back twice (here and in heightToNormal), so ask for a CPU-side canvas.
-  const octx = out.getContext("2d", { willReadFrequently: true })!;
-  octx.drawImage(source, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-  const img = octx.getImageData(0, 0, out.width, out.height);
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const l = d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11;
-    d[i] = d[i + 1] = d[i + 2] = l;
-  }
-  octx.putImageData(img, 0, 0);
-  return out;
 }
 
 /** Court markings over the sports floor. */
@@ -617,8 +500,8 @@ function copperGrid(c: Ctx, r: Rect, s: number) {
 }
 
 /**
- * Paint a floor sample (sample board, mega menu, service heroes) with the same
- * photo textures as the hero, planks running left to right. Falls back to the
+ * Paint a floor sample (sample board, mega menu, service heroes) from its
+ * photo texture, planks running left to right. Falls back to the
  * procedural painter for carpet, or if the photo fails to load.
  *
  * `pxPerMetre` sets the scale: how many canvas pixels one metre of floor takes.
@@ -643,60 +526,4 @@ export async function paintFloorSwatch(kind: FloorKind, ctx: Ctx, r: Rect, pxPer
   }
   if (kind === "sports-flooring") courtLines(ctx, r, s);
   if (kind === "anti-static-esd") copperGrid(ctx, r, s);
-}
-
-/**
- * The hero's sheet: six floors end to end. Uses the photo textures where they
- * load and the procedural painters otherwise. Yields to the browser between
- * floors so the page stays responsive.
- *
- * `ppu` is pixels per metre; a zone is `zoneM` metres long and `widthM` wide.
- */
-export async function buildFloorAtlasAsync(ppu: number, zoneM: number, widthM: number, signal?: { cancelled: boolean }): Promise<FloorAtlas | null> {
-  const zones = floorOrder.length;
-  const zoneW = ppu * zoneM;
-  const W = Math.round(zoneW * zones);
-  const H = Math.round(ppu * widthM);
-  const scale = ppu / 300;
-  const color = makeCanvas(W, H);
-  const height = makeCanvas(W, H);
-  const surface = makeCanvas(W, H);
-  const normal = makeCanvas(W, H);
-  const c = color.getContext("2d", { willReadFrequently: true })!;
-  const h = height.getContext("2d", { willReadFrequently: true })!;
-  const sctx = surface.getContext("2d")!;
-  const nctx = normal.getContext("2d")!;
-  const idle = () => new Promise<void>((r) => setTimeout(r, 0));
-
-  const photos = await Promise.all(floorOrder.map((k) => (floorPhotos[k] ? loadImage(floorPhotos[k]!.src) : Promise.resolve(null))));
-
-  for (let i = 0; i < zones; i++) {
-    if (signal?.cancelled) return null;
-    const kind = floorOrder[i];
-    const r = { x: Math.round(i * zoneW), y: 0, w: Math.round(zoneW), h: H };
-    const surf = floorSurface[kind];
-    const photo = photos[i];
-    const spec = floorPhotos[kind];
-    let heightZone: HTMLCanvasElement;
-    let bump: number;
-
-    if (photo && spec) {
-      mirrorTile(c, photo, r, spec.metres * ppu);
-      heightZone = lumaCanvas(color, r);
-      bump = spec.bump;
-      if (kind === "sports-flooring") courtLines(c, r, scale);
-      if (kind === "anti-static-esd") copperGrid(c, r, scale);
-    } else {
-      paintFloor(kind, { c, h }, r, scale, 11);
-      heightZone = makeCanvas(r.w, r.h);
-      heightZone.getContext("2d")!.drawImage(height, r.x, r.y, r.w, r.h, 0, 0, r.w, r.h);
-      bump = surf.normal;
-    }
-    await idle();
-    sctx.fillStyle = `rgb(${Math.round(surf.clearcoat * 255)},${Math.round(surf.roughness * 255)},0)`;
-    sctx.fillRect(r.x, r.y, r.w, r.h);
-    nctx.drawImage(heightToNormal(heightZone, bump * scale), r.x, r.y);
-    await idle();
-  }
-  return { color, normal, surface, zones };
 }

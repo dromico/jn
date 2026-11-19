@@ -41,11 +41,34 @@
   "hero": {
     "title": "Lantai dipasang tepat ke milimeter.",
     "sub": "Lantai vinil, sukan, gimnasium, anti-statik dan permaidani, dari simen perata hingga kimpalan terakhir.",
-    "keepScrolling": "Terus skrol untuk membuka gulungan seterusnya.",
-    "laidTitle": "Lantai siap dipasang",
-    "laidBody": "Enam jenis lantai, satu kru",
-    "floors": "{n} daripada 6 lantai",
-    "posterAlt": "Pandangan dari atas enam jenis lantai bersebelahan, vinil homogenus, jubin rupa kayu, sukan, getah gimnasium, anti-statik dan permaidani, dengan garisan kimpalan panas berwarna jingga di sepanjang sambungan."
+    "keepScrolling": "Skrol untuk membina lantai, selapis demi selapis.",
+    "stepsLabel": "Cara lantai dipasang",
+    "steps": [
+      {
+        "title": "Lantai konkrit",
+        "body": "Dikisar rata dan divakum, supaya tiada bahan longgar tertinggal di bawah lantai."
+      },
+      {
+        "title": "Primer",
+        "body": "Primer putih menutup liang konkrit dan membantu lapisan seterusnya melekat."
+      },
+      {
+        "title": "Simen perata, 3 mm",
+        "body": "Dituang, kemudian digelek dengan penggelek berpaku untuk membuang udara. Ia mengeras dengan rata."
+      },
+      {
+        "title": "Gam",
+        "body": "Gam putih, diratakan dengan kulir bergerigi."
+      },
+      {
+        "title": "Vinil homogenus, 2 mm",
+        "body": "Dibentang dari gulungan, dilengkungkan ke dinding dan dikimpal panas pada setiap sambungan."
+      }
+    ],
+    "doneTitle": "Kira-kira 5.5 mm, dari konkrit ke permukaan.",
+    "doneBody": "Beginilah cara kami memasang vinil homogenus di wad, klinik dan makmal.",
+    "doneLink": "Tentang vinil homogenus",
+    "posterAlt": "Penjuru lantai hospital yang dipotong, setiap lapisan bertingkat: lantai konkrit, primer putih, simen perata 3 mm, gam putih, dan vinil homogenus 2 mm berwarna hijau sage yang dilengkungkan ke dinding dengan sambungan yang dikimpal."
   },
   "home": {
     "intro": "Kru kami sendiri menyediakan, meratakan, memasang dan mengimpal setiap lantai, supaya hospital, sekolah dan pusat data mendapat lantai yang tahan lama.",

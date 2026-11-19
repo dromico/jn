@@ -4,8 +4,9 @@
  * Full-page hero. The 3D scene is a full-screen canvas that opens clipped to
  * the right-hand column (the mockup's layout) and grows to fill the screen
  * over the first scroll, as in the "Video Scroll Hero" pattern (21st.dev, id
- * 7512). The headline and buttons step aside as it grows, so the floor gets
- * the full width for the unroll and the top-down finish.
+ * 7512). The headline and buttons step aside as it grows; the scene then
+ * dives into the corner of the ward and builds the floor up layer by layer,
+ * with a caption for each layer.
  */
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -15,24 +16,23 @@ import { Link } from "@/i18n/navigation";
 import { whatsappLink } from "@/content/site";
 import { buttonClass, ButtonLink } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/icons";
-import { SwatchCanvas } from "@/components/ui/SwatchCanvas";
 import { cn } from "@/lib/cn";
-import type { FloorKind } from "./textures";
-import type { SceneFrame } from "./VinylRollScene";
+import type { SceneFrame } from "./FloorBuildScene";
 import { useScrollProgress } from "./useScrollProgress";
 
-const VinylRollScene = dynamic(() => import("./VinylRollScene"), { ssr: false });
-
-export interface HeroFloor {
-  name: string;
-  spec: string;
-  texture: FloorKind;
-}
+const FloorBuildScene = dynamic(() => import("./FloorBuildScene"), { ssr: false });
 
 type Mode = "pending" | "3d" | "poster";
 
+interface Step {
+  title: string;
+  body: string;
+}
+
 /** Pixels of scroll it takes the frame to grow to full screen. */
 const GROW_PX = 160;
+/** Scene stage once the floor is finished and the camera pulls back. */
+const FINISHED = 5;
 
 function supportsWebGL() {
   try {
@@ -49,16 +49,16 @@ const smooth = (a: number, b: number, v: number) => {
   return x * x * (3 - 2 * x);
 };
 
-export function Hero({ floors }: { floors: HeroFloor[] }) {
+export function Hero() {
   const t = useTranslations("hero");
   const tc = useTranslations("common");
+  const steps = t.raw("steps") as Step[];
   const section = useRef<HTMLElement>(null);
   const container = useRef<HTMLDivElement>(null);
   const column = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const copy = useRef<HTMLDivElement>(null);
   const ctas = useRef<HTMLDivElement>(null);
-  const card = useRef<HTMLDivElement>(null);
   const rail = useRef<HTMLDivElement>(null);
   const pointer = useRef({ x: 0, y: 0 });
   const shown = useRef(-1);
@@ -69,7 +69,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
   const [quality, setQuality] = useState<"high" | "low">("high");
   const [active, setActive] = useState(true);
   const [ready, setReady] = useState(false);
-  const [zone, setZone] = useState(0);
+  const [step, setStep] = useState(-1);
 
   const progress = useScrollProgress(section, mode !== "poster");
 
@@ -129,7 +129,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
     return () => io.disconnect();
   }, []);
 
-  // Pointer anywhere on the page steers the camera and the key light.
+  // Pointer anywhere on the page nudges the camera and the key light.
   useEffect(() => {
     if (mode !== "3d") return;
     const onMove = (e: PointerEvent) => {
@@ -171,8 +171,8 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
     };
   }, [mode]);
 
-  // One loop smooths the scroll and drives the frame, the headline, the card
-  // and the 3D camera from the same value, so they never drift apart.
+  // One loop smooths the scroll and drives the frame, the headline, the
+  // captions and the 3D camera from the same value, so they never drift apart.
   useEffect(() => {
     if (mode === "poster" || !active) return;
     let raf = 0;
@@ -202,12 +202,10 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
         // Out of the tab order once it has stepped aside; the heading stays for screen readers.
         el.inert = aside > 0.98;
       }
-      // The card rises to the top of the screen but stays lined up with the
-      // page's right margin (and the navbar's quote button).
-      if (card.current && W > 0) card.current.style.transform = `translateY(${(12 - y) * g}px)`;
       if (rail.current) {
         rail.current.style.opacity = String(g);
         rail.current.style.visibility = g < 0.02 ? "hidden" : "visible";
+        rail.current.inert = g < 0.98;
       }
       raf = requestAnimationFrame(tick);
     };
@@ -215,8 +213,7 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
     return () => cancelAnimationFrame(raf);
   }, [mode, active, progress]);
 
-  const laid = mode === "poster" || zone >= floors.length;
-  const current = laid ? { name: t("laidTitle"), spec: t("laidBody") } : floors[zone];
+  const finished = step >= FINISHED;
 
   return (
     <section ref={section} className={cn("hero-pin relative", mode === "poster" && "!h-auto")} aria-labelledby="hero-title">
@@ -232,13 +229,13 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
           <div ref={stage} aria-hidden="true" className="absolute inset-0 z-0" style={{ clipPath: "inset(0 0 0 100%)" }}>
             {mode === "3d" && (
               <div className={cn("absolute inset-0 transition-opacity duration-700", ready ? "opacity-100" : "opacity-0")}>
-                <VinylRollScene
+                <FloorBuildScene
                   progress={shown}
                   frame={frame}
                   pointer={pointer}
                   quality={quality}
                   active={active}
-                  onZone={setZone}
+                  onStage={setStep}
                   onReady={() => setReady(true)}
                   onDecline={() => {
                     if (!new URLSearchParams(window.location.search).has("hero")) setQuality("low");
@@ -270,27 +267,17 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
             </div>
           </div>
 
-          <div ref={column} className={cn("relative md:h-full md:max-h-[640px]", mode === "poster" ? "aspect-[3/2] md:aspect-[4/3] md:h-auto" : "min-h-[240px]")}>
+          <div ref={column} className={cn("relative md:h-full md:max-h-[640px]", mode === "poster" ? "aspect-[4/3] md:h-auto" : "min-h-[240px]")}>
             {mode === "poster" ? (
               <div className="relative size-full overflow-hidden rounded-md">
-                <Image src="/images/hero-poster.png" alt={t("posterAlt")} fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover" />
+                <Image src="/images/hero-section.png" alt={t("posterAlt")} fill sizes="(min-width: 768px) 58vw, 100vw" className="object-cover" />
               </div>
             ) : (
               // Still of the opening frame: first paint, and phones until they scroll.
               <div className={cn("absolute inset-0 overflow-hidden rounded-md transition-opacity duration-700", ready ? "opacity-0" : "opacity-100")}>
-                <Image src="/images/hero-start.png" alt="" aria-hidden="true" fill sizes="(min-width: 768px) 58vw, 100vw" priority quality={60} className="object-cover" />
+                <Image src="/images/hero-ward.png" alt="" aria-hidden="true" fill sizes="(min-width: 768px) 58vw, 100vw" priority quality={60} className="object-cover" />
               </div>
             )}
-
-            <div
-              ref={card}
-              className="absolute right-3 top-3 rounded-md border border-hairline bg-white px-3 py-2 text-[12px] leading-[1.5] will-change-transform sm:right-4 sm:top-4 sm:px-4 sm:py-3 sm:text-[14px]"
-              aria-live="polite"
-            >
-              <p className="font-semibold">{current.name}</p>
-              <p className="text-stone">{current.spec}</p>
-              {!laid && <p className="mt-1 text-stone">{tc("ofTotal", { n: zone + 1, total: floors.length })}</p>}
-            </div>
           </div>
 
           <div ref={ctas} className="pointer-events-auto flex flex-col gap-2.5 md:hidden">
@@ -303,30 +290,85 @@ export function Hero({ floors }: { floors: HeroFloor[] }) {
           </div>
         </div>
 
-        {/* Six floors as a strip of samples: which one is on the roll now. */}
+        {/* Reduced motion: the finished section above, every layer listed here. */}
+        {mode === "poster" && (
+          <div className="wrap pb-10">
+            <StepList steps={steps} current={-1} label={t("stepsLabel")} all />
+          </div>
+        )}
+
+        {/* Captions over the full-screen scene: which layer is going down now. */}
         {mode !== "poster" && (
-          <div ref={rail} aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-5 z-10 sm:bottom-8" style={{ opacity: 0, visibility: "hidden" }}>
-            {/* Bottom left, where the headline was, clear of the WhatsApp button. */}
-            <div className="wrap flex items-center gap-4">
-              <ol className="flex gap-1.5 rounded-md bg-white/90 p-1.5 shadow-[0_2px_10px_rgba(35,49,45,0.08)]">
-                {floors.map((f, i) => (
-                  <li
-                    key={f.texture}
-                    className={cn(
-                      "size-6 overflow-hidden rounded-xs transition-[opacity,outline-color] duration-300 sm:size-7",
-                      laid || i <= zone ? "opacity-100" : "opacity-35",
-                      !laid && i === zone ? "outline-2 outline-offset-2 outline-spruce" : "outline-0 outline-transparent",
-                    )}
-                  >
-                    <SwatchCanvas kind={f.texture} density={0.35} />
-                  </li>
-                ))}
-              </ol>
-              {!laid && <p className="hidden rounded-sm bg-slab/85 px-2 py-1 text-[13px] text-stone sm:block">{t("keepScrolling")}</p>}
+          <div ref={rail} className="pointer-events-none absolute inset-x-0 bottom-4 z-10 sm:bottom-8" style={{ opacity: 0, visibility: "hidden" }}>
+            {/* Phones: stop short of the floating WhatsApp button. */}
+            <div className="wrap max-sm:pr-[88px]">
+              {finished ? (
+                <div className="pointer-events-auto max-w-[400px] rounded-md bg-white/95 p-4 shadow-[0_2px_14px_rgba(35,49,45,0.1)] sm:p-5" aria-live="polite">
+                  <p className="wide text-[19px] font-bold leading-tight tracking-[-0.01em] sm:text-[22px]">{t("doneTitle")}</p>
+                  <p className="mt-1.5 text-[15px] leading-snug text-stone">{t("doneBody")}</p>
+                  <div className="mt-4 flex flex-wrap gap-2.5">
+                    <ButtonLink href={whatsappLink()} target="_blank" rel="noopener noreferrer" icon={<WhatsAppIcon />}>
+                      {tc("getQuote")}
+                    </ButtonLink>
+                    <Link href="/services/homogeneous-vinyl" className={buttonClass("outline")}>
+                      {t("doneLink")}
+                    </Link>
+                  </div>
+                </div>
+              ) : step < 0 ? (
+                <p className="inline-block rounded-sm bg-white/90 px-3 py-2 text-[14px] text-stone shadow-[0_2px_10px_rgba(35,49,45,0.08)]">{t("keepScrolling")}</p>
+              ) : (
+                <StepList steps={steps} current={step} label={t("stepsLabel")} of={tc("ofTotal", { n: step + 1, total: steps.length })} />
+              )}
             </div>
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * The five layers. Full screen on desktop: the whole list, the current layer
+ * expanded. Phones: just the current layer and a progress bar. With `all`,
+ * every layer is expanded (reduced motion).
+ */
+function StepList({ steps, current, label, of, all = false }: { steps: Step[]; current: number; label: string; of?: string; all?: boolean }) {
+  return (
+    <div className={cn(!all && "max-w-[360px] rounded-md bg-white/95 p-3 shadow-[0_2px_14px_rgba(35,49,45,0.1)] sm:p-4")}>
+      {!all && (
+        <div className="mb-2 flex items-center gap-3 md:hidden" aria-hidden="true">
+          <span className="text-[13px] text-stone">{of}</span>
+          <span className="flex flex-1 gap-1">
+            {steps.map((_, i) => (
+              <span key={i} className={cn("h-[3px] flex-1 rounded-full", i < current ? "bg-weld" : i === current ? "bg-spruce" : "bg-hairline")} />
+            ))}
+          </span>
+        </div>
+      )}
+      <ol aria-label={label} className={cn(all && "grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-5")}>
+        {steps.map((s, i) => {
+          const isCurrent = i === current;
+          const done = all || i < current;
+          return (
+            <li
+              key={s.title}
+              aria-current={isCurrent ? "step" : undefined}
+              className={cn("relative py-1.5 pl-4", !all && !isCurrent && "hidden md:block")}
+            >
+              <span
+                aria-hidden="true"
+                className={cn("absolute bottom-2 left-0 top-2 w-[3px] rounded-full transition-colors duration-300", isCurrent ? "bg-spruce" : done ? "bg-weld" : "bg-hairline")}
+              />
+              <p className={cn("text-[15px] leading-snug transition-colors duration-300", isCurrent ? "font-semibold text-spruce" : done ? "text-ink-soft" : "text-stone")}>
+                <span className="mr-2 tabular-nums text-stone">{i + 1}</span>
+                {s.title}
+              </p>
+              {(isCurrent || all) && <p className="mt-0.5 text-[14px] leading-snug text-stone" aria-live={all ? undefined : "polite"}>{s.body}</p>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
   );
 }

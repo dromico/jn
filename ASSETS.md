@@ -45,11 +45,12 @@ Paths are set in `content/equipment.ts`.
 | `public/images/clients/*.svg` | SVG or PNG, transparent | Client logos for the marquee. List them in `content/clients.ts` (and get permission first) |
 | About page: crew photo | 4:3, ≥ 1600 px | Our crew on site. Slot is in `app/[locale]/about/page.tsx` (`Photo src={null}`): set `src` to e.g. `/images/team/crew.jpg` |
 | About page: team members | 4:5 | Supervisors and installers. Same file, "The team" section |
-| `public/images/hero-poster.png`, `hero-start.png` | 1050 × 960 | Stills of the hero's last and first frames (reduced motion / first paint on phones). Regenerate them if the hero changes |
+| `public/images/hero-ward.png` | 1050 × 960 | Still of the hero's opening frame, the ward (first paint, and phones until they scroll) |
+| `public/images/hero-section.png` | 1200 × 900 | Still of the finished floor section (reduced motion). Regenerate both if the hero changes |
 
 ## Hero and swatch textures
 
-**Photo textures.** The hero, the sample board, the mega menu and the service-page heroes use six 1024 px tiles in `public/textures/`, generated with Google's Nano Banana 2.1 image model (through OpenRouter) on 18 Nov 2026. They are AI-generated, so there is no third-party licence to credit.
+**Photo textures.** The sample board, the mega menu and the service-page heroes use six 1024 px tiles in `public/textures/`, generated with Google's Nano Banana 2.1 image model (through OpenRouter) on 18 Nov 2026. They are AI-generated, so there is no third-party licence to credit.
 
 | File | Floor | Covers | Notes |
 |---|---|---|---|
@@ -62,8 +63,8 @@ Paths are set in `content/equipment.ts`.
 
 Carpet stays procedural: the image model's filter refused every carpet prompt.
 
-**To use photos of your own floors:** shoot straight down in even light, crop square, save as 1024 × 1024 WebP over the file above. Tiles are mirrored when repeated, so they don't need to be seamless. The size each tile covers and its bump strength are set in `floorPhotos` in `components/hero/textures.ts`. The hero derives the normal map from the photo's brightness. If a file is missing, that floor falls back to its procedural texture.
+**To use photos of your own floors:** shoot straight down in even light, crop square, save as 1024 × 1024 WebP over the file above. Tiles are mirrored when repeated, so they don't need to be seamless. The size each tile covers is set in `floorPhotos` in `components/hero/textures.ts`. The hero uses only the homogeneous vinyl and concrete photos. If a file is missing, that floor falls back to its procedural texture (the hero falls back to flat colours).
 
-After changing a texture, regenerate the two stills (`public/images/hero-start.png` for the first paint on phones, `public/images/hero-poster.png` for reduced motion) by screenshotting the canvas at `/en?hero=0` and `/en?hero=1`.
+After changing the homogeneous or concrete texture, regenerate the two stills: `hero-ward.png` is the right-hand column at `/en?hero=0`; `hero-section.png` is the full-screen canvas at `/en?hero=0.849` (the finished section, before the camera pulls back), with the captions hidden, cropped to 4:3.
 
 **Sample board, mega menu and service heroes** use the same photo files, so replacing a file updates every place that floor appears. Carpet is drawn in code everywhere. The procedural painters in `components/hero/textures.ts` stay as the fallback if a file is missing.

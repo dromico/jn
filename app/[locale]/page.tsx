@@ -38,7 +38,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
-      <Hero floors={services.map((s) => ({ name: s.name[locale], spec: s.spec[locale], texture: s.texture }))} />
+      <Hero />
 
       <section className="wrap grid items-end gap-10 border-t border-hairline pb-10 pt-12 lg:grid-cols-[minmax(0,6fr)_repeat(3,minmax(0,2fr))]" aria-label={t("intro")}>
         <p className="max-w-[24em] text-[22px] leading-[1.3] tracking-[-0.015em] sm:text-[28px]">{t("intro")}</p>

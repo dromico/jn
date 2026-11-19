@@ -41,11 +41,34 @@
   "hero": {
     "title": "Floors laid to the millimetre.",
     "sub": "Vinyl, sports, gym, anti-static and carpet flooring, from screed to final weld.",
-    "keepScrolling": "Keep scrolling to unroll the rest.",
-    "laidTitle": "Floor laid",
-    "laidBody": "Six floors, one crew",
-    "floors": "{n} of 6 floors",
-    "posterAlt": "Top-down view of six floors laid side by side, homogeneous vinyl, wood-look tiles, sports, gym rubber, anti-static and carpet, with amber hot-weld lines along the seams."
+    "keepScrolling": "Scroll to build the floor, one layer at a time.",
+    "stepsLabel": "How the floor goes down",
+    "steps": [
+      {
+        "title": "Concrete slab",
+        "body": "Ground flat and vacuumed, so nothing loose is left under the floor."
+      },
+      {
+        "title": "Primer",
+        "body": "A white primer seals the slab and helps the next layer grip."
+      },
+      {
+        "title": "Self-levelling, 3 mm",
+        "body": "Poured on, then spiked to let the air out. It sets dead flat."
+      },
+      {
+        "title": "Adhesive",
+        "body": "White adhesive, combed out with a notched trowel."
+      },
+      {
+        "title": "Homogeneous vinyl, 2 mm",
+        "body": "Rolled out, coved up the wall and heat-welded at every seam."
+      }
+    ],
+    "doneTitle": "About 5.5 mm, slab to surface.",
+    "doneBody": "This is how we lay homogeneous vinyl in wards, clinics and labs.",
+    "doneLink": "About homogeneous vinyl",
+    "posterAlt": "Cut-away corner of a hospital floor with each layer stepped back: concrete slab, white primer, 3 mm self-levelling compound, white adhesive, and 2 mm sage-green homogeneous vinyl coved up the wall with a welded joint."
   },
   "home": {
     "intro": "Our own crew preps, levels, lays and welds every floor, so hospitals, schools and data centres get floors that last.",
